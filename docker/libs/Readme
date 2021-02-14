@@ -1,0 +1,23 @@
+Libyang:
+	install path: /usr/local/
+
+libssh:
+	install path: /usr/local/
+	dependency: OpenSSL, installed with version 1.1.1
+
+libnetconf2:
+	install path: /usr/local/
+	/* old */installed only with SSH. TLS is disabled with  -DENABLE_TLS=OFF while cmake.
+	EDIT: installed without flags because netopeer2 had problems during build 
+
+sysrepo:
+	install path: /usr/local/
+
+netopeer2: 
+	instalation fails becasue of tls. First suposition is that it's because 
+	libnetconf is installed with tls dissabled.
+	EDIT: works after re-installing libnetconf2 without flags.
+
+	Note: installed libcurl4-openssl-dev to enable url's. If not, warning apears while
+	installing netopeer2 without it.
+	
