@@ -1,0 +1,73 @@
+/**
+ * @file common.h
+ * @author Michal Vasko <mvasko@cesnet.cz>
+ * @brief netopeer2-server common structures and functions
+ *
+ * Copyright (c) 2019 CESNET, z.s.p.o.
+ *
+ * This source code is licensed under BSD 3-Clause License (the "License").
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://opensource.org/licenses/BSD-3-Clause
+ */
+
+#ifndef NP2SRV_COMMON_H_
+#define NP2SRV_COMMON_H_
+
+#include <stdint.h>
+#include <sys/types.h>
+#include <time.h>
+#include <pthread.h>
+
+#include <nc_server.h>
+#include <sysrepo.h>
+
+#include "compat.h"
+#include "config.h"
+
+/* server internal data */
+struct np2srv {
+    sr_conn_ctx_t *sr_conn;         /**< sysrepo connection */
+    sr_session_ctx_t *sr_sess;      /**< sysrepo server session */
+    sr_subscription_ctx_t *sr_rpc_sub;  /**< sysrepo RPC subscription context */
+    sr_subscription_ctx_t *sr_data_sub; /**< sysrepo data subscription context */
+    sr_subscription_ctx_t *sr_notif_sub;    /**< sysrepo notification subscription context */
+
+    const char *unix_path;          /**< path to the UNIX socket to listen on, if any */
+    mode_t unix_mode;               /**< UNIX socket mode */
+    uid_t unix_uid;                 /**< UNIX socket UID */
+    gid_t unix_gid;                 /**< UNIX socket GID */
+
+    struct nc_pollsession *nc_ps;   /**< libnetconf2 pollsession structure */
+    uint16_t nc_max_sessions;       /**< maximum number of running sessions */
+    pthread_t workers[NP2SRV_THREAD_COUNT]; /**< worker threads handling sessions */
+};
+extern struct np2srv np2srv;
+
+extern ATOMIC_T skip_nacm_sr_sid;
+
+int np_sleep(uint32_t ms);
+
+const char *np_get_nc_sess_user(sr_session_ctx_t *session);
+
+void np2srv_ntf_new_cb(sr_session_ctx_t *session, const sr_ev_notif_type_t notif_type, const struct lyd_node *notif,
+        time_t timestamp, void *private_data);
+
+void np2srv_new_session_cb(const char *client_name, struct nc_session *new_session);
+
+int np2srv_url_setcap(void);
+
+#ifdef NP2SRV_URL_CAPAB
+
+struct lyd_node *op_parse_url(const char *url, int options, int *rc, sr_session_ctx_t *sr_sess);
+
+int op_export_url(const char *url, struct lyd_node *data, int options, int *rc, sr_session_ctx_t *sr_sess);
+
+#endif
+
+struct lyd_node *op_parse_config(struct lyd_node_anydata *config, int options, int *rc, sr_session_ctx_t *sr_sess);
+
+int op_filter_create(struct lyd_node *filter_node, char ***filters, int *filter_count);
+
+#endif /* NP2SRV_COMMON_H_ */

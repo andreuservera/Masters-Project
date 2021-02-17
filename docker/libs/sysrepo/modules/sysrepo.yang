@@ -1,0 +1,285 @@
+module sysrepo {
+    namespace "http://www.sysrepo.org/yang/sysrepo";
+    prefix sr;
+
+    yang-version 1.1;
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-yang-metadata {
+        prefix md;
+        revision-date 2016-08-05;
+    }
+
+    organization
+        "CESNET";
+
+    contact
+        "Author: Michal Vasko
+                 <mvasko@cesnet.cz>";
+
+    description
+        "Sysrepo YANG datastore internal attributes and information.";
+
+    revision "2020-01-15" {
+        description
+            "Added a new purge operation.";
+    }
+
+    revision "2019-11-26" {
+        description
+            "startup-data renamed to data; it is used for running datastore as well.";
+    }
+
+    revision "2019-10-25" {
+        description
+            "Added attributes for storing operational data owners.";
+    }
+
+    revision "2019-09-25" {
+        description
+            "Added initial startup data for newly installed modules.";
+    }
+
+    revision "2019-09-17" {
+        description
+            "Added list of scheduled installed modules.";
+    }
+
+    revision "2019-07-10" {
+        description
+            "Initial revision.";
+    }
+
+    typedef module-ref {
+        description
+            "Reference to a module.";
+        type leafref {
+            path "/sysrepo-modules/module/name";
+        }
+    }
+
+    md:annotation operation {
+        type enumeration {
+            enum none {
+                description
+                    "Node with this operation must exist but does not affect the datastore in any way.";
+                reference
+                    "RFC 6241 section 7.2.: default-operation";
+            }
+            enum ether {
+                description
+                    "Node with this operation does not have to exist and does not affect the datastore in any way.";
+            }
+            enum purge {
+                description
+                    "Node with this operation represents an arbitrary generic node instance and all
+                     the instances will be deleted.";
+            }
+        }
+        description
+            "Additional proprietary <edit-config> operations used internally.";
+        reference
+            "RFC 6241 section 7.2.";
+    }
+
+    md:annotation orig-key {
+        type string;
+        description
+            "List keys that were originally preceding the list node instance in the configuration.";
+    }
+
+    md:annotation orig-value {
+        type string;
+        description
+            "Leaf-list value that was originally prceding the leaf-list node instance in the configuration.";
+    }
+
+    md:annotation orig-dflt {
+        type empty;
+        description
+            "Present if the node was originally a default node.";
+    }
+
+    md:annotation pid {
+        type uint32;
+        description
+            "Process with this PID is the owner of the operational data subtree.";
+    }
+
+    md:annotation conn-ptr {
+        type uint64;
+        description
+            "Connection with this address is the owner of the operational data subtree.";
+    }
+
+    grouping module-info-grp {
+        leaf name {
+            type string;
+            description
+                "Module name.";
+        }
+
+        leaf revision {
+            type string;
+            description
+                "Module revision.";
+        }
+
+        leaf-list enabled-feature {
+            type string;
+            description
+                "List of all the enabled features.";
+        }
+    }
+
+    grouping deps-grp {
+        leaf-list module {
+            type module-ref;
+            description
+                "Module that is being dependent on.";
+        }
+
+        list inst-id {
+            key "xpath";
+
+            leaf xpath {
+                type yang:xpath1.0;
+                description
+                    "XPath identifying the node with the dependency.";
+            }
+
+            leaf default-module {
+                type module-ref;
+                description
+                    "Module dependency in case the default value is being used.";
+            }
+        }
+    }
+
+    container sysrepo-modules {
+        config false;
+        description
+            "All installed Sysrepo modules.";
+
+        list module {
+            key "name";
+            description
+                "Sysrepo module.";
+
+            uses module-info-grp;
+
+            leaf replay-support {
+                type uint64;
+                description
+                    "Present only if the module supports replay. Means the earliest stored notification if any present.
+                     Otherwise the time the replay support was switched on.";
+            }
+
+            choice changed-module {
+                description
+                    "This module is scheduled for a change.";
+                leaf removed {
+                    type empty;
+                    description
+                        "Module was removed.";
+                }
+
+                leaf updated-yang {
+                    type string;
+                    description
+                        "Module was updated with a newer revision. Content is the whole new YANG module.";
+                }
+
+                case feature-changes {
+                    list changed-feature {
+                        key "name";
+                        description
+                            "Module features are scheduled for a change.";
+
+                        leaf name {
+                            type string;
+                            description
+                                "Changed feature name.";
+                        }
+
+                        leaf change {
+                            type enumeration {
+                                enum "enable" {
+                                    description
+                                        "Feature will be enabled.";
+                                }
+                                enum "disable" {
+                                    description
+                                        "Feature will be disabled.";
+                                }
+                            }
+                            mandatory true;
+                            description
+                                "Feature change nature.";
+                        }
+                    }
+                }
+            }
+
+            container data-deps {
+                description
+                    "Module data dependencies on other modules.";
+                uses deps-grp;
+            }
+
+            list op-deps {
+                key "xpath";
+                description
+                    "Module operation (RPCs, Actions, Notifications) dependencies on other modules.";
+
+                leaf xpath {
+                    type yang:xpath1.0;
+                    description
+                        "XPath identifying the operation.";
+                }
+
+                container in {
+                    description
+                        "Operation input or notification dependencies.";
+                    uses deps-grp;
+                }
+
+                container out {
+                    description
+                        "Operation output dependencies.";
+                    uses deps-grp;
+                }
+            }
+
+            leaf-list inverse-data-deps {
+                type module-ref;
+                description
+                    "List of modules that depend on this module.";
+            }
+        }
+
+        list installed-module {
+            key "name";
+            description
+                "Sysrepo module scheduled to be installed.";
+
+            uses module-info-grp;
+
+            leaf module-yang {
+                type string;
+                mandatory true;
+                description
+                    "Content is the whole new YANG module.";
+            }
+
+            leaf data {
+                type string;
+                description
+                    "Initial startup and running data to be set for the module, in JSON format.";
+            }
+        }
+    }
+}
