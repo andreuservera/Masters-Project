@@ -1,0 +1,24 @@
+/**
+ * @file config.h
+ * @author Radek Krejci <rkrejci@cesnet.cz>
+ * @brief cmocka tests configuration header.
+ *
+ * Copyright (c) 2015 CESNET, z.s.p.o.
+ *
+ * This source code is licensed under BSD 3-Clause License (the "License").
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://opensource.org/licenses/BSD-3-Clause
+ */
+
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+
+#define TESTS_DIR "@CMAKE_SOURCE_DIR@/tests"
+
+@SSH_MACRO@
+@TLS_MACRO@
