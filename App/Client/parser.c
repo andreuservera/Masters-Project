@@ -130,6 +130,19 @@ void ReadConfigFile()
             snprintf(ptr_current_switch->switx_id, SWITCH_ID_LENGTH, "%s", ptr_buffer);
             printf("switch id: %s\n", ptr_current_switch->switx_id);
 
+            memset(buffer, 0, sizeof buffer);
+            getWord(fpointer, ptr_buffer, &word_length, 0);
+            if(strcmp(ptr_buffer, STR_PORT) == 0)
+            {
+                port* ptr_current_port = (port*)malloc(sizeof(port));
+
+                memset(buffer, 0, sizeof buffer);
+                getWord(fpointer, ptr_buffer, &word_length, 0);
+
+                ptr_current_port->port_number = charToInt(*ptr_buffer);
+                printf("port id: %d\n", ptr_current_port->port_number);
+            }
+
         }
         //****** PARSE PORT ******
         else if (strcmp(ptr_buffer, STR_PORT))
@@ -140,12 +153,6 @@ void ReadConfigFile()
         memset(buffer, 0, sizeof buffer);
         getWord(fpointer, ptr_buffer, &word_length, 0);
 
-        /*if(compareWords(ptr_buffer, word_length, STR_PORT, STR_PORT_LENGTH, 0))
-        {
-
-        }
-
-        }*/
 
 
         memset(buffer, 0, sizeof buffer);
