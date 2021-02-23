@@ -283,7 +283,7 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         }
 
     }
-
+    free(ptr_s)
     fclose(fpointer);
 
 }
