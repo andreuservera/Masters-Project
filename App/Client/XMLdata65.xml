@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>>
+<if:interfaces xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+	<if:interface>
+		<if:name>1</if:name>
+		<if:type xmlns:iftype="urn:ietf:params:xml:ns:yang:iana-if-type">iftype:ethernetCsmacd</if:type>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>0</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>1</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>2</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>3</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>4</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>5</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>6</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:max-sdu-table xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:traffic-class>7</sched:traffic-class>
+			<sched:queue-max-sdu>0</sched:queue-max-sdu>
+		</sched:max-sdu-table>
+		<sched:gate-parameters xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
+			<sched:gate-enabled>true</sched:gate-enabled>
+			<sched:admin-gate-states>0</sched:admin-gate-states>
+			<sched:admin-control-list-length>2</sched:admin-control-list-length>
+			<sched:admin-control-list>
+				<sched:index>0</sched:index>
+				<sched:operation-name>sched:set-gate-states</sched:operation-name>
+				<sched:sgs-params>
+					<sched:gate-states-value>128</sched:gate-states-value>
+					<sched:time-interval-value>200000</sched:time-interval-value>
+				</sched:sgs-params>
+			</sched:admin-control-list>
+			<sched:admin-control-list>
+				<sched:index>1</sched:index>
+				<sched:operation-name>sched:set-gate-states</sched:operation-name>
+				<sched:sgs-params>
+					<sched:gate-states-value>64</sched:gate-states-value>
+					<sched:time-interval-value>100000</sched:time-interval-value>
+				</sched:sgs-params>
+			</sched:admin-control-list>
+			<sched:admin-cycle-time>
+				<sched:numerator>500</sched:numerator>
+				<sched:denominator>1666666</sched:denominator>
+			</sched:admin-cycle-time>
+			<sched:admin-base-time>
+				<sched:seconds>0</sched:seconds>
+				<sched:fractional-seconds>0</sched:fractional-seconds>
+			</sched:admin-base-time>
+			<sched:config-change>true</sched:config-change>
+		</sched:gate-parameters>
+	</if:interface>
+</if:interfaces>

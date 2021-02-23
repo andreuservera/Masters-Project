@@ -31,7 +31,7 @@ void writePort(FILE * file_pointer, int port_number, int admin_control_list_leng
         fprintf(file_pointer, "\t\t<sched:max-sdu-table xmlns:sched=\"urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched\">\n");
         fprintf(file_pointer, "\t\t\t<sched:traffic-class>%d</sched:traffic-class>\n", i);
         fprintf(file_pointer, "\t\t\t<sched:queue-max-sdu>0</sched:queue-max-sdu>\n");
-        fprintf(file_pointer, "\t\t</sched:mysql.h: No such file or directorymax-sdu-table>\n");
+        fprintf(file_pointer, "\t\t</sched:max-sdu-table>\n");
     }
     fprintf(file_pointer, "\t\t<sched:gate-parameters xmlns:sched=\"urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched\">\n");
     fprintf(file_pointer, "\t\t\t<sched:gate-enabled>true</sched:gate-enabled>\n");
@@ -79,53 +79,13 @@ void writeList(FILE * file_pointer, unsigned long *period, int *gates_state, flo
 }
 
 
-// MINE
-////Structure for a port
-//typedef struct {
-//    int port_number;
-//    int admin_control_list_length;
-//    float hypercycle;
-//    //Each port can have more than one period and gates_state
-//    unsigned long *period;
-//    int *gates_state;
-
-//}port;
-
-////Structure for a single switch
-//typedef struct {
-//    char switx_id[SWITCH_ID_LENGTH];            //String
-//    int length_switx_number;                    //Length of the switch number
-//    port **ports;                               // Ports of the switch
-//    int ports_quantity;
-
-//}switx;
-
-////Toni
-//typedef struct {
-//    int port_number;
-//    int admin_control_list_length;
-//    float hypercycle;
-//    //Each port can have more than one period and gates_state
-//    unsigned long *period;
-//    int *gates_state;
-
-//}port;
-
-////Structure for a single switch
-//typedef struct {
-//    char *switx_number;           //String
-//    int length_switx_number;      //Length of the switch number
-//    port **ports;                 // Ports of the switch
-//    int ports_quantity;
-
-//}switx;
 
 /**************************************************************************/
 /** @name ReadFile  *******************************************************/
 /**************************************************************************/
 void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 {
-    printf("Inside ReadConfigFile 1\n");
+    printf("Inside ReadConfigFile\n");
     //*****************+****** VARIABLES **********************
 
     //Variables for getting a word
@@ -201,6 +161,7 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
     //********* START READING THE FILE*********
 
     FILE * fpointer = fopen("mytext.txt","r");
+    ptr_switch  = malloc(sizeof(switx));
 
     while(1)
     {
@@ -215,30 +176,25 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         //******* GET A SWITCH *************
         if(compareWords(word, length_word,label_switch, length_label_switch, 0) == TRUE)
         {
-            ptr_count_switches++;
-            //printf("[INFO] ************************ SWITCH: %d *******************\n", switches_quantity+1 );
+            (*ptr_count_switches)++;
 
             getWord(fpointer, word, &length_word, 0);                                                           //Read the switch number
-
-            ptr_switch  = malloc(sizeof(switx));                                                                // Space for the structure switx
             aux_word = copyCharArray(word,length_word);                                                         //Find an address to store the switch number
+            printf("A: %s\n", ptr_switch->switx_number);
             ptr_switch->switx_number = aux_word;
+            printf("B: %s\n", ptr_switch->switx_number);
             ptr_switch->length_switx_number = length_word;                                                      //When we get numbers te function returns length +1
             ptr_switch->ports_quantity = 0;                                                                     //Initialise the number of ports
-            ptr_switches[switches_quantity] = ptr_switch;                                                       //Store the new switch in the array of switches
-            ptr_switches[switches_quantity]->ports = malloc(sizeof(ptr_port)*NUMBER_OF_PORTS);                  //Initialise the space for the ports
-            switches_quantity++;                                                                                //Update the number of switches
+            ptr_switches[*ptr_count_switches-1] = ptr_switch;
+            ptr_switches[*ptr_count_switches-1]->ports = malloc(sizeof(ptr_port)*NUMBER_OF_PORTS);
 
+            block = 1;
 
         }
-
 
         //******* GET A PORT **********
         if(compareWords(word,length_word,label_portnumber,length_label_portnumber,0) == TRUE)
         {
-
-            //printf("[INFO] +++++++ PORT: %d +++++++\n", ptr_switches[switches_quantity-1]->ports_quantity+1 );
-
             getWord(fpointer, word, &length_word, 0);                                                      //Read the port number
             ptr_port = malloc(sizeof(port));                                                               // Space for the structure port
             aux_word = copyCharArray(word, length_word);                                                   //Store the port number in  a free address
@@ -246,33 +202,32 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
             ptr_port->admin_control_list_length = 0;                                                      //Initialise the length of the list
             aux_hypercycle = 0;                                                                           //Initialise the value of the hypercycle
 
-            last_port = ptr_switches[switches_quantity-1]->ports_quantity;                                //Store the number of ports in a variable to make the code more readable
-            ptr_switches[switches_quantity-1]->ports[last_port] = ptr_port;                               //Store the new switch in the array of switches
-            ptr_switches[switches_quantity-1]->ports_quantity++;                                          //Update the number of ports in the switch
-            ptr_switches[switches_quantity-1]->ports[last_port]->period = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);        //Allocate memory for the lists of the port
-            ptr_switches[switches_quantity-1]->ports[last_port]->gates_state = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);
+            last_port = ptr_switches[*ptr_count_switches-1]->ports_quantity;                                //Store the number of ports in a variable to make the code more readable
+            ptr_switches[*ptr_count_switches-1]->ports[last_port] = ptr_port;                               //Store the new switch in the array of switches
+            ptr_switches[*ptr_count_switches-1]->ports_quantity++;                                          //Update the number of ports in the switch
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->period = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);        //Allocate memory for the lists of the port
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->gates_state = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);
 
             block = 0;                                                                                    //If the port have been read then we can proceed  to read the configuration
             getWord(fpointer, word, &length_word, 0);                                                     //Read the period
-
         }
 
         //******* GET PERIOD AND GATES-STATE ********
         //If it's not a port or a switch it should be the period and the gates state
 
+
         if(block == 0)
         {
         //printf("[INFO] ---- NEW LIST----\n");
-
             aux_word = copyCharArray(word, length_word);
-            aux_acll = ptr_switches[switches_quantity-1]->ports[last_port]->admin_control_list_length;              //Store the length of the list in a variable to make the code more readable
-            ptr_switches[switches_quantity-1]->ports[last_port]->period[aux_acll] = atol(aux_word);                 //Convert the period into a double and store it
+            aux_acll = ptr_switches[*ptr_count_switches-1]->ports[last_port]->admin_control_list_length;              //Store the length of the list in a variable to make the code more readable
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->period[aux_acll] = atol(aux_word);                 //Convert the period into a double and store it
             aux_hypercycle = aux_hypercycle + atol(aux_word);                                                       //Calculate the new hypercycle
-            ptr_switches[switches_quantity-1]->ports[last_port]->hypercycle = (float)aux_hypercycle/1000000000;     //Convert the hypercyle to seconds and store it
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->hypercycle = (float)aux_hypercycle/1000000000;     //Convert the hypercyle to seconds and store it
 
             getWord(fpointer, word, &length_word, 0);                                                               //Get the gates state
-            ptr_switches[switches_quantity-1]->ports[last_port]->gates_state[aux_acll] = BinCharToInt(word, length_word); //Store the gates state
-            ptr_switches[switches_quantity-1]->ports[last_port]->admin_control_list_length++;                       //Update the length of the list
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->gates_state[aux_acll] = BinCharToInt(word, length_word); //Store the gates state
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->admin_control_list_length++;                       //Update the length of the list
 
 
 
@@ -283,7 +238,7 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         }
 
     }
-
+    //free(ptr_switch);
     fclose(fpointer);
 
 }
@@ -293,15 +248,17 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 /**************************************************************************/
 void WriteXmlInstance(int *ptr_count_switches, switx **ptr_switches)
 {
-
+    printf("***** START WriteXmlInstance *****\n");
     char s64[] = "64";
     char s65[] = "65";
     char name_file[13];
 
     for (int k = 0; k < *ptr_count_switches; k++)
     {
+        printf("K = %d \t ptr_switches[%d]->switx_number = %s \n", k, k, ptr_switches[k]->switx_number);
         if(strcmp(ptr_switches[k]->switx_number,s64) == 0 || strcmp(ptr_switches[k]->switx_number,s65) == 0 )
         {
+            printf("X\n");
             sprintf(name_file,"XMLdata%s.xml",ptr_switches[k]->switx_number);
             FILE * fpointer1 = fopen(name_file,"w");
             fprintf(fpointer1,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>>\n");
@@ -315,77 +272,12 @@ void WriteXmlInstance(int *ptr_count_switches, switx **ptr_switches)
                 writeList(fpointer1, ptr_switches[k]->ports[i]->period, ptr_switches[k]->ports[i]->gates_state, ptr_switches[k]->ports[i]->hypercycle, ptr_switches[k]->ports[i]->admin_control_list_length);
             }
             fprintf(fpointer1,"</if:interfaces>\n");
+            printf("A\n");
             fclose(fpointer1);
+            printf("B\n");
         }
+        printf("Y\n");
     }
+    printf("***** END WriteXmlInstance *****\n");
 }
 
-/**************************************************************************/
-/** @name ReadFile  *******************************************************/
-/**************************************************************************/
-/*void ReadConfigFileOld()
-{
-    FILE * fpointer = fopen ("mytext.txt", "r");
-
-    char buffer[150];
-    int word_length = 1;           //Length of last read word
-    char *ptr_buffer = buffer;
-
-    switx** ptr_switches;
-
-    int numOfSwitches = 0;
-
-    while(word_length != END_FILE)
-    {
-        getWord(fpointer, ptr_buffer, &word_length, 0);
-        printf("%s\n",ptr_buffer);
-
-        int exit_switch = 0;
-
-        //****** PARSE SWITCH ******
-        if (strcmp(ptr_buffer, STR_SWITCH) == 0)
-        {
-            numOfSwitches++;
-            switx* ptr_current_switch = (switx*)malloc(sizeof(switx));
-
-            memset(buffer, 0, sizeof buffer);
-            getWord(fpointer, ptr_buffer, &word_length, 0);
-            if(word_length>10)
-            {
-                fprintf(stderr,"Switch_id is too long!");
-                exit(1);
-            }
-            snprintf(ptr_current_switch->switx_id, SWITCH_ID_LENGTH, "%s", ptr_buffer);
-            printf("switch id: %s\n", ptr_current_switch->switx_id);
-
-            memset(buffer, 0, sizeof buffer);
-            getWord(fpointer, ptr_buffer, &word_length, 0);
-            if(strcmp(ptr_buffer, STR_PORT) == 0)
-            {
-                port* ptr_current_port = (port*)malloc(sizeof(port));
-
-                memset(buffer, 0, sizeof buffer);
-                getWord(fpointer, ptr_buffer, &word_length, 0);
-
-                ptr_current_port->port_number = charToInt(*ptr_buffer);
-                printf("port id: %d\n", ptr_current_port->port_number);
-            }
-
-        }
-        //****** PARSE PORT ******
-        else if (strcmp(ptr_buffer, STR_PORT))
-        {
-
-        }
-
-        memset(buffer, 0, sizeof buffer);
-        getWord(fpointer, ptr_buffer, &word_length, 0);
-
-
-
-        memset(buffer, 0, sizeof buffer);
-    }
-}
-
-
-*/

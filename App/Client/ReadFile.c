@@ -16,13 +16,17 @@ void main()
     int count_switches = 0;
     int* ptr_count_switches = &count_switches;
 
-
     switx **ptr_switches;
     ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
 
-    printf("Call ReadConfigFile()\n");
     ReadConfigFile(ptr_count_switches, ptr_switches);
     printf("CountSwitches: %u\n", count_switches);
+
+    for(int i=0; i < *ptr_count_switches; i++)
+    {
+        printf("Switch id: %s \ ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
+    }
+
     WriteXmlInstance(ptr_count_switches, ptr_switches);
 
     free(ptr_count_switches);
