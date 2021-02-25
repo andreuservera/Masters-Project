@@ -152,16 +152,9 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 
 
 
-    //int count_switches = 0; // indicates the quantity of switches in the reading file
-
-
-
-
-
     //********* START READING THE FILE*********
 
     FILE * fpointer = fopen("mytext.txt","r");
-    ptr_switch  = malloc(sizeof(switx));
 
     while(1)
     {
@@ -177,15 +170,26 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         if(compareWords(word, length_word,label_switch, length_label_switch, 0) == TRUE)
         {
             (*ptr_count_switches)++;
+            printf("[SWITCH: %d]\n",*ptr_count_switches);
 
-            getWord(fpointer, word, &length_word, 0);                                                           //Read the switch number
+            getWord(fpointer, word, &length_word, 0);
+
+            ptr_switch  = malloc(sizeof(switx));
+
             aux_word = copyCharArray(word,length_word);                                                         //Find an address to store the switch number
-            printf("A: %s\n", ptr_switch->switx_number);
             ptr_switch->switx_number = aux_word;
-            printf("B: %s\n", ptr_switch->switx_number);
+            printf("New: %s\n", ptr_switch->switx_number);
             ptr_switch->length_switx_number = length_word;                                                      //When we get numbers te function returns length +1
             ptr_switch->ports_quantity = 0;                                                                     //Initialise the number of ports
-            ptr_switches[*ptr_count_switches-1] = ptr_switch;
+            ptr_switches[(*ptr_count_switches)-1] = ptr_switch;
+
+            //Debug
+            for(int i = 0; i < *ptr_count_switches; i++)
+            {
+                printf("Switch id: %s\n", ptr_switches[i]->switx_number);
+            }
+
+
             ptr_switches[*ptr_count_switches-1]->ports = malloc(sizeof(ptr_port)*NUMBER_OF_PORTS);
 
             block = 1;
@@ -238,6 +242,10 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         }
 
     }
+    for(int i=0; i < *ptr_count_switches; i++)
+    {
+        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
+    }
     //free(ptr_switch);
     fclose(fpointer);
 
@@ -256,9 +264,8 @@ void WriteXmlInstance(int *ptr_count_switches, switx **ptr_switches)
     for (int k = 0; k < *ptr_count_switches; k++)
     {
         printf("K = %d \t ptr_switches[%d]->switx_number = %s \n", k, k, ptr_switches[k]->switx_number);
-        if(strcmp(ptr_switches[k]->switx_number,s64) == 0 || strcmp(ptr_switches[k]->switx_number,s65) == 0 )
-        {
-            printf("X\n");
+        /*if(strcmp(ptr_switches[k]->switx_number,s64) == 0 || strcmp(ptr_switches[k]->switx_number,s65) == 0 )*/
+        //{
             sprintf(name_file,"XMLdata%s.xml",ptr_switches[k]->switx_number);
             FILE * fpointer1 = fopen(name_file,"w");
             fprintf(fpointer1,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>>\n");
@@ -272,11 +279,8 @@ void WriteXmlInstance(int *ptr_count_switches, switx **ptr_switches)
                 writeList(fpointer1, ptr_switches[k]->ports[i]->period, ptr_switches[k]->ports[i]->gates_state, ptr_switches[k]->ports[i]->hypercycle, ptr_switches[k]->ports[i]->admin_control_list_length);
             }
             fprintf(fpointer1,"</if:interfaces>\n");
-            printf("A\n");
             fclose(fpointer1);
-            printf("B\n");
-        }
-        printf("Y\n");
+        //}
     }
     printf("***** END WriteXmlInstance *****\n");
 }

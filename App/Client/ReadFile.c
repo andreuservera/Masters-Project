@@ -24,12 +24,10 @@ void main()
 
     for(int i=0; i < *ptr_count_switches; i++)
     {
-        printf("Switch id: %s \ ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
+        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
     }
 
     WriteXmlInstance(ptr_count_switches, ptr_switches);
-
-    free(ptr_count_switches);
     free(ptr_switches);
 }
 
