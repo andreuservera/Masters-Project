@@ -1,131 +1,40 @@
-#include <string.h>
-#include <mysql/mysql.h>
 #include "utils.h"
+#include "parser.h"
+#include <stdlib.h>
 
 /****************************** M A C R O S ******************************/
-#define END_FILE 0
+
 #define SIZE_POINTER 8
 #define NUMBER_OF_PORTS 6
 #define NUMBER_OF_SWITCHS 8
 #define NUMBER_OF_LISTS 100
 
 
-/**************************************************************************/
-/** @name writePort ****************************************************/
-/**************************************************************************/
-//@{
 
-/**
- * @brief Writes in an XML format the port information
- *
- * @param [FILE * file_pointer] file that wants to be writen
- *
- * @param [ int port_number] the port number
- *
- * @param [ float hypercycle] the hypercycle of the list
- *
- */
-
-void writePort(FILE * file_pointer, int port_number, int admin_control_list_length)
+void main()
 {
-    fprintf(file_pointer, "\t<if:interface>\n");
-    fprintf(file_pointer, "\t\t<if:name>%d</if:name>\n",port_number);
-    fprintf(file_pointer, "\t\t<if:type xmlns:iftype=\"urn:ietf:params:xml:ns:yang:iana-if-type\">iftype:ethernetCsmacd</if:type>\n");
-    for (int i=0; i<8; i++){
-    	fprintf(file_pointer, "\t\t<sched:max-sdu-table xmlns:sched=\"urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched\">\n");
-    	fprintf(file_pointer, "\t\t\t<sched:traffic-class>%d</sched:traffic-class>\n", i);
-    	fprintf(file_pointer, "\t\t\t<sched:queue-max-sdu>0</sched:queue-max-sdu>\n");
-    	fprintf(file_pointer, "\t\t</sched:mysql.h: No such file or directorymax-sdu-table>\n");
+    int count_switches = 0;
+    int* ptr_count_switches = &count_switches;
+
+    switx **ptr_switches;
+    ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
+
+    ReadConfigFile(ptr_count_switches, ptr_switches);
+    printf("CountSwitches: %u\n", count_switches);
+
+    for(int i=0; i < *ptr_count_switches; i++)
+    {
+        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
     }
-    fprintf(file_pointer, "\t\t<sched:gate-parameters xmlns:sched=\"urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched\">\n");
-    fprintf(file_pointer, "\t\t\t<sched:gate-enabled>true</sched:gate-enabled>\n");
-    fprintf(file_pointer, "\t\t\t<sched:admin-gate-states>0</sched:admin-gate-states>\n");	//0..7
-    fprintf(file_pointer, "\t\t\t<sched:admin-control-list-length>%d</sched:admin-control-list-length>\n", admin_control_list_length);
 
-    return;
+    WriteXmlInstance(ptr_count_switches, ptr_switches);
+    free(ptr_switches);
 }
 
-
-
-/**************************************************************************/
-/** @name writeList ****************************************************/
-/**************************************************************************/
-//@{
-
-/**
- * @brief Writes in an XML format the list of a port and the end part
- * of the port
- *
- * @param [FILE * file_pointer] file that wants to be writen
- *
- * @param [ unsigned long *period] pointer to the periods of the list
- *
- * @param [int *gates_state]  pointer to the gates state of the list
- *
- * @param [int admin_control_list_length]  length of the list
- *
- */
-
-void writeList(FILE * file_pointer, unsigned long *period, int *gates_state, float hypercycle, int admin_control_list_length)
-{
-	int index;
-	float denominator;
-
-	for( index = 0; index < admin_control_list_length; index++)
-	{
-		fprintf(file_pointer, "\t\t\t<sched:admin-control-list>\n");
-		fprintf(file_pointer, "\t\t\t\t<sched:index>%d</sched:index>\n",index);
-		fprintf(file_pointer, "\t\t\t\t<sched:operation-name>sched:set-gate-states</sched:operation-name>\n");
-		fprintf(file_pointer, "\t\t\t\t<sched:sgs-params>\n");
-		fprintf(file_pointer, "\t\t\t\t\t<sched:gate-states-value>%d</sched:gate-states-value>\n", gates_state[index]); // 0..7 TODO
-		fprintf(file_pointer, "\t\t\t\t\t<sched:time-interval-value>%ld</sched:time-interval-value>\n", period[index]);
-		fprintf(file_pointer, "\t\t\t\t</sched:sgs-params>\n");
-		fprintf(file_pointer, "\t\t\t</sched:admin-control-list>\n");
-	}
-	fprintf(file_pointer, "\t\t\t<sched:admin-cycle-time>\n");
-	fprintf(file_pointer, "\t\t\t\t<sched:numerator>500</sched:numerator>\n");
-	denominator = 500.0/hypercycle;
-	fprintf(file_pointer, "\t\t\t\t<sched:denominator>%d</sched:denominator>\n", (int)denominator);
-	fprintf(file_pointer, "\t\t\t</sched:admin-cycle-time>\n");
-	fprintf(file_pointer, "\t\t\t<sched:admin-base-time>\n");
-	fprintf(file_pointer, "\t\t\t\t<sched:seconds>0</sched:seconds>\n");
-	fprintf(file_pointer, "\t\t\t\t<sched:fractional-seconds>0</sched:fractional-seconds>\n");
-	fprintf(file_pointer, "\t\t\t</sched:admin-base-time>\n");
-	fprintf(file_pointer, "\t\t\t<sched:config-change>true</sched:config-change>\n");
-	fprintf(file_pointer, "\t\t</sched:gate-parameters>\n");
-	fprintf(file_pointer, "\t</if:interface>\n");
-
-	return;
-}
-
-
-
-
-//Structure for a port
-typedef struct {
-    int port_number;
-    int admin_control_list_length;
-    float hypercycle;
-    //Each port can have more than one period and gates_state
-    unsigned long *period;
-    int *gates_state;
-
-}port;
-
-//Structure for a single switch
-typedef struct {
-    char *switx_number;           //String
-    int length_switx_number;      //Length of the switch number
-    port **ports;                 // Ports of the switch
-    int ports_quantity;
-
-}switx;
-
-
-
+/*
 int main()
 {
-	/*****************+****** VARIABLES **********************/
+    //*****************+****** VARIABLES **********************
 
 	//Variables for getting a word
 	char string[150];                   //Max length of a word
@@ -168,7 +77,7 @@ int main()
 	MYSQL_ROW row;
 	char *server = "localhost";
 	char *user = "root";
-	char *password = "12345678"; /* Poner la contraseña */
+    char *password = "12345678"; // Poner la contraseña
 	char *database = "mydata";
 	char *myquery;
 	int list_number = 1;  //indicates which the list
@@ -219,7 +128,7 @@ int main()
 			if((strcmp(str,"store") == 0) || (strcmp(str,"store-upload") == 0))
 			{
 				conn = mysql_init(NULL);
-				/* Connect to database */
+                // Connect to database
 		        if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) 
 				{
 		            fprintf(stderr, "%s\n", mysql_error(conn));
@@ -227,10 +136,10 @@ int main()
 		        }
 			}
 
-			/******** INITIALIZATION*******************/
+            //************** INITIALIZATION******************
 			ptr_switches = malloc(sizeof(ptr_switch)*NUMBER_OF_SWITCHS);
 
-			/********** START READING THE FILE*********/
+            //********* START READING THE FILE*********
 
 			FILE * fpointer = fopen("mytext.txt","r");
 
@@ -244,7 +153,7 @@ int main()
 				}
 
 
-				//******* GET A SWITCH *************//
+                //******* GET A SWITCH *************
 				if(compareWords(word, length_word,label_switch, length_label_switch, 0) == TRUE)
 				{
 					count_switches++;
@@ -290,7 +199,7 @@ int main()
 						//printf("[DATABASE] NEW LIST NUMBER: %d\n", list_number);
 					}
 	
-					/*****DEBUG*********/
+                    //*****DEBUG*********
 					//printf("[DEBUG] Address switch %d: %p\n",switches_quantity - 1 , ptr_switches[switches_quantity - 1]);
 					//printf("[INFO] Switch number: %s \n",ptr_switches[switches_quantity - 1]->switx_number);
 					block = 1;
@@ -298,7 +207,7 @@ int main()
 				}
 
 
-				//******* GET A PORT **********//
+                //******* GET A PORT **********
 
 				if(compareWords(word,length_word,label_portnumber,length_label_portnumber,0) == TRUE)
 				{
@@ -324,7 +233,7 @@ int main()
           //printf("[INFO] Port number: %d \n",ptr_switches[switches_quantity-1]->ports[last_port]->port_number);
 				}
 
-				//******* GET PERIOD AND GATES-STATE ********//
+                //******* GET PERIOD AND GATES-STATE ********
 				//If it's not a port or a switch it should be the period and the gates state
 
 			if(block == 0)
@@ -349,7 +258,7 @@ int main()
 				//printf("[INFO] Gates state: %d \n",ptr_switches[switches_quantity-1]->ports[last_port]->gates_state[aux_acll]);
 
 
-				//******** Database ********//
+                //******** Database ********
 
 				if((strcmp(str,"store") == 0) || (strcmp(str,"store-upload") == 0))
 				{
@@ -393,7 +302,7 @@ int main()
 
     if((strcmp(str,"store-upload") == 0) || (strcmp(str,"upload") == 0) || (strcmp(str,"upload-config") == 0))
     {
-		//********** WRITE XML FILE **************//
+        //********** WRITE XML FILE **************
 		//printf("[INFO] Writing XML file\n");
 
 		if((strcmp(str,"store-upload") == 0) || (strcmp(str,"upload") == 0))
@@ -450,7 +359,7 @@ int main()
 		//printf("[INFO] Command: choose-config\n");
 		conn = mysql_init(NULL);
 		myquery = malloc(sizeof(char)*200);
-		/* Connect to database */
+        //* Connect to database
 		if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) 
 		{
 			fprintf(stderr, "%s\n", mysql_error(conn));
@@ -563,7 +472,7 @@ int main()
 
 		conn = mysql_init(NULL);
 		myquery = malloc(sizeof(char)*200);
-		/* Connect to database */
+        // Connect to database
 		if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) 
 		{
 			fprintf(stderr, "%s\n", mysql_error(conn));
@@ -589,7 +498,7 @@ int main()
 
 			res = mysql_use_result(conn);
 
-			/* output table name */
+            // output table name
 			printf("Port number | Index |    Period    | Gates state \n");
 			printf("------------|-------|--------------|-------------\n");
 			while ((row = mysql_fetch_row(res)) != NULL)
@@ -609,7 +518,7 @@ int main()
 
 			res = mysql_use_result(conn);
 
-			/* output table name */
+            // output table name
 			printf("   List ID    | Switch number\n");
 			printf("--------------|-------------\n");
 			while ((row = mysql_fetch_row(res)) != NULL)
@@ -635,7 +544,7 @@ int main()
 		conn = mysql_init(NULL);
 		myquery = malloc(sizeof(char)*200);
 		
-		/* Connect to database */
+        // Connect to database
 		if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) 
 		{
 			fprintf(stderr, "%s\n", mysql_error(conn));
@@ -723,3 +632,4 @@ int main()
 
 	return 0;
 }
+*/
