@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "parser.h"
 #include <stdlib.h>
+#include <mysql/mysql.h>
 
 /****************************** M A C R O S ******************************/
 
@@ -13,6 +14,9 @@
 
 void main()
 {
+    //***************************************
+    //********** Parse config file **********
+    //***************************************
     int count_switches = 0;
     int* ptr_count_switches = &count_switches;
 
@@ -20,14 +24,99 @@ void main()
     ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
 
     ReadConfigFile(ptr_count_switches, ptr_switches);
-    printf("CountSwitches: %u\n", count_switches);
-
-    for(int i=0; i < *ptr_count_switches; i++)
-    {
-        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
-    }
+    printf("Number of Switches: %u\n", count_switches);
 
     WriteXmlInstance(ptr_count_switches, ptr_switches);
+
+
+    //***************************************
+    //********** Manage user input **********
+    //***************************************
+    MYSQL* conn;
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+
+    char* server = "localhost";
+    char* user = "default";
+    char* passwd = "password";
+    char* db = "mydata";
+
+
+    while(1)
+    {
+        int list_number = 1;
+
+
+        printf("> ");
+        char buffer[256];
+
+        if(fgets(buffer, sizeof buffer, stdin) != NULL)
+        {
+            buffer[strcspn(buffer, "\n")] = 0;
+
+            if(strcmp(buffer, "store") == 0 || strcmp(buffer, "store-upload") == 0)
+            {
+                printf("--- STORE / UPLOAD ---\n");
+                for(int i=0; i<*ptr_count_switches; i++)
+                {
+                    char* myquery = malloc(sizeof(char)*200);
+
+                    conn = mysql_init(NULL);
+                    // Connect to database
+                    if (!mysql_real_connect(conn, server, user, passwd, db, 0, NULL, 0))
+                    {
+                        fprintf(stderr, "%s\n", mysql_error(conn));
+                        exit(1);
+                    }
+
+                    myquery = malloc(sizeof(char)*200);
+                    sprintf(myquery, "select list_number, switch_number  from info group by switch_number, list_number HAVING switch_number=%d order by list_number DESC", i);
+                    //Query to find the last list_number
+                    if (mysql_query(conn, myquery))
+                    {
+                        fprintf(stderr, "%s\n", mysql_error(conn));
+                        exit(1);
+                    }
+                    MYSQL_RES *query_results = mysql_store_result(conn);
+                    if ((row = mysql_fetch_row(query_results))!=NULL)
+                    {
+                        list_number = row[0] ? atoi(row[0]) : 0;
+                        printf("[DATABASE]LIST NUMBER: %d\n", list_number);
+                        list_number++;
+                    }
+                    else
+                    {
+                        list_number = 1;
+                    }
+
+                    //*************************************************************
+//                    aux_period = ptr_switches[switches_quantity-1]->ports[last_port]->period[aux_acll];
+//					aux_gates_state = ptr_switches[switches_quantity-1]->ports[last_port]->gates_state[aux_acll];
+//					aux_switx_number = copyCharArray(ptr_switches[switches_quantity-1]->switx_number, ptr_switches[switches_quantity-1]->length_switx_number);
+//					aux1 = atoi(aux_switx_number);
+//					aux_port_number = (int)ptr_switches[switches_quantity-1]->ports[last_port]->port_number;
+//					//printf("aux port number : %d\n",aux_port_number);
+//					//list_number = 1;
+
+//					sprintf(myquery, "INSERT INTO info(switch_number,port_number,list_number,index_,period,gates_state) VALUES(%d, %d, %d, %d, %li, %d)",aux1, aux_port_number,list_number, aux_acll, aux_period, aux_gates_state);
+
+//					//printf("[DATABASE] Query\n");
+//					if (mysql_query(conn, myquery))
+//					{
+//	                	fprintf(stderr, "%s\n", mysql_error(conn));
+//						exit(1);
+//					}
+                    //printf("[DATABASE] Configuration added in database\n");
+
+
+                }
+            }
+
+        }
+
+        memset(buffer, 0, sizeof buffer);
+    }
+
     free(ptr_switches);
 }
 

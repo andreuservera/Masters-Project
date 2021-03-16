@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "utils.h"
+#include <string.h>
 
 //Structure for a port
 typedef struct {

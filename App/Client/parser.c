@@ -1,5 +1,3 @@
-#include <string.h>
-#include <mysql/mysql.h>
 #include "parser.h"
 #include "utils.h"
 #include <stdlib.h>
@@ -85,7 +83,6 @@ void writeList(FILE * file_pointer, unsigned long *period, int *gates_state, flo
 /**************************************************************************/
 void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 {
-    printf("Inside ReadConfigFile\n");
     //*****************+****** VARIABLES **********************
 
     //Variables for getting a word
@@ -170,7 +167,6 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         if(compareWords(word, length_word,label_switch, length_label_switch, 0) == TRUE)
         {
             (*ptr_count_switches)++;
-            printf("[SWITCH: %d]\n",*ptr_count_switches);
 
             getWord(fpointer, word, &length_word, 0);
 
@@ -178,16 +174,15 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 
             aux_word = copyCharArray(word,length_word);                                                         //Find an address to store the switch number
             ptr_switch->switx_number = aux_word;
-            printf("New: %s\n", ptr_switch->switx_number);
             ptr_switch->length_switx_number = length_word;                                                      //When we get numbers te function returns length +1
             ptr_switch->ports_quantity = 0;                                                                     //Initialise the number of ports
             ptr_switches[(*ptr_count_switches)-1] = ptr_switch;
 
             //Debug
-            for(int i = 0; i < *ptr_count_switches; i++)
-            {
-                printf("Switch id: %s\n", ptr_switches[i]->switx_number);
-            }
+//            for(int i = 0; i < *ptr_count_switches; i++)
+//            {
+//                printf("Switch id: %s\n", ptr_switches[i]->switx_number);
+//            }
 
 
             ptr_switches[*ptr_count_switches-1]->ports = malloc(sizeof(ptr_port)*NUMBER_OF_PORTS);
@@ -216,9 +211,6 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
             getWord(fpointer, word, &length_word, 0);                                                     //Read the period
         }
 
-        //******* GET PERIOD AND GATES-STATE ********
-        //If it's not a port or a switch it should be the period and the gates state
-
 
         if(block == 0)
         {
@@ -242,13 +234,13 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         }
 
     }
-    for(int i=0; i < *ptr_count_switches; i++)
-    {
-        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
-    }
+//    for(int i=0; i < *ptr_count_switches; i++)
+//    {
+//        printf("Switch id: %s \t ports: %d\n", ptr_switches[i]->switx_number, ptr_switches[i]->ports_quantity);
+//    }
     //free(ptr_switch);
     fclose(fpointer);
-
+    printf("Configuration file parsed correctly...\n");
 }
 
 /**************************************************************************/
@@ -256,32 +248,26 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 /**************************************************************************/
 void WriteXmlInstance(int *ptr_count_switches, switx **ptr_switches)
 {
-    printf("***** START WriteXmlInstance *****\n");
+
     char s64[] = "64";
     char s65[] = "65";
     char name_file[13];
 
     for (int k = 0; k < *ptr_count_switches; k++)
     {
-        printf("K = %d \t ptr_switches[%d]->switx_number = %s \n", k, k, ptr_switches[k]->switx_number);
-        /*if(strcmp(ptr_switches[k]->switx_number,s64) == 0 || strcmp(ptr_switches[k]->switx_number,s65) == 0 )*/
-        //{
-            sprintf(name_file,"XMLdata%s.xml",ptr_switches[k]->switx_number);
-            FILE * fpointer1 = fopen(name_file,"w");
-            fprintf(fpointer1,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>>\n");
-            fprintf(fpointer1,"<if:interfaces xmlns:if=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n");
+        sprintf(name_file,"XMLdata%s.xml",ptr_switches[k]->switx_number);
+        FILE * fpointer1 = fopen(name_file,"w");
+        fprintf(fpointer1,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>>\n");
+        fprintf(fpointer1,"<if:interfaces xmlns:if=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n");
 
-            //printf("[INFO] Command: store-upload or upload\n");
-            //printf("%s\n",name_file);
-            for(int i = 0; i < ptr_switches[k]->ports_quantity; i++)
-            {
-                writePort(fpointer1, ptr_switches[k]->ports[i]->port_number, ptr_switches[k]->ports[i]->admin_control_list_length);
-                writeList(fpointer1, ptr_switches[k]->ports[i]->period, ptr_switches[k]->ports[i]->gates_state, ptr_switches[k]->ports[i]->hypercycle, ptr_switches[k]->ports[i]->admin_control_list_length);
+        for(int i = 0; i < ptr_switches[k]->ports_quantity; i++)
+        {
+            writePort(fpointer1, ptr_switches[k]->ports[i]->port_number, ptr_switches[k]->ports[i]->admin_control_list_length);
+            writeList(fpointer1, ptr_switches[k]->ports[i]->period, ptr_switches[k]->ports[i]->gates_state, ptr_switches[k]->ports[i]->hypercycle, ptr_switches[k]->ports[i]->admin_control_list_length);
+        }
+        fprintf(fpointer1,"</if:interfaces>\n");
+        fclose(fpointer1);
             }
-            fprintf(fpointer1,"</if:interfaces>\n");
-            fclose(fpointer1);
-        //}
-    }
-    printf("***** END WriteXmlInstance *****\n");
+    printf("XML instance generated correctly...\n");
 }
 
