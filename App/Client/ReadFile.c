@@ -11,7 +11,12 @@
 #define NUMBER_OF_SWITCHS 8
 #define NUMBER_OF_LISTS 100
 
-void readArgumentValue(char* arg, char* ptr, int bufferLength, char* dest);
+
+void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL* conn);
+void Show(MYSQL* conn);
+void Select_args(MYSQL *conn, char *buffer);
+void ReadArgumentValue(char* arg, char* ptr, int bufferLength, char* dest);
+
 
 void main()
 {
@@ -45,170 +50,36 @@ void main()
 
     while(1)
     {
-        int list_number = 1;
 
+        conn = mysql_init(NULL);
+        // Connect to database
+        if (!mysql_real_connect(conn, server, user, passwd, db, 0, NULL, 0))
+        {
+            fprintf(stderr, "%s\n", mysql_error(conn));
+            exit(1);
+        }
 
         printf("> ");
         char buffer[256];
 
         if(fgets(buffer, sizeof buffer, stdin) != NULL)
         {
-            int bufferLength = strlen(buffer);
+
             buffer[strcspn(buffer, "\n")] = 0;
 
             if(strcmp(buffer, "store") == 0 || strcmp(buffer, "store-upload") == 0)
             {
-                printf("--- STORE / UPLOAD ---\n");
-                for(int i=0; i<*ptr_count_switches; i++)
-                {
-                    char* myquery = malloc(sizeof(char)*200);
-
-                    conn = mysql_init(NULL);
-                    // Connect to database
-                    if (!mysql_real_connect(conn, server, user, passwd, db, 0, NULL, 0))
-                    {
-                        fprintf(stderr, "%s\n", mysql_error(conn));
-                        exit(1);
-                    }
-
-                    myquery = malloc(sizeof(char)*200);
-                    sprintf(myquery, "select list_number, switch_number  from info group by switch_number, list_number HAVING switch_number=%d order by list_number DESC", i);
-                    //Query to find the last list_number
-                    if (mysql_query(conn, myquery))
-                    {
-                        fprintf(stderr, "%s\n", mysql_error(conn));
-                        exit(1);
-                    }
-                    MYSQL_RES *query_results = mysql_store_result(conn);
-                    if ((row = mysql_fetch_row(query_results))!=NULL)
-                    {
-                        list_number = row[0] ? atoi(row[0]) : 0;
-                        printf("[DATABASE]LIST NUMBER: %d\n", list_number);
-                        list_number++;
-                    }
-                    else
-                    {
-                        list_number = 1;
-                    }
-
-                    //*************************************************************
-                    for(int i = 0; i < count_switches; i++)
-                    {
-                        printf("[SWITCH: %d] \n", i);
-                        printf("\tID: %s \n", ptr_switches[i]->switx_number);
-                        printf("\tNumber of Ports: %d \n", ptr_switches[i]->ports_quantity);
-                        for(int j = 0; j < ptr_switches[i]->ports_quantity; j++)
-                        {
-                            printf("\t[PORT: %d ] \n", ptr_switches[i]->ports[j]->port_number);
-                            printf("\t\tadmin_control_list_length: %d \n", ptr_switches[i]->ports[j]->admin_control_list_length);
-                            printf("\t\tadmin_control_list_length: %f \n", ptr_switches[i]->ports[j]->hypercycle);
-
-                            for(int k=0; k < ptr_switches[i]->ports[j]->admin_control_list_length; k++)
-                            {
-                                printf("\t\tPeriod: ");
-                                printf("%lu", ptr_switches[i]->ports[j]->period[k]);
-                                printf("\t\t\tgate_states: ");
-                                printf("%d \n", ptr_switches[i]->ports[j]->gates_state[k]);
-                            }
-                        }
-                    }
-
-                    int last_port = ptr_switches[count_switches-1]->ports_quantity;
-                    printf("debug1: %d\n", last_port);
-                    int debug = ptr_switches[count_switches-1]->ports[last_port]->port_number;
-                    printf("debug2\n");
-                    int aux_acll = ptr_switches[count_switches-1]->ports[last_port]->admin_control_list_length;
-                    printf("debug3\n");
-                    unsigned long aux_period = ptr_switches[count_switches-1]->ports[last_port]->period[aux_acll];
-                    int aux_gates_state = ptr_switches[count_switches-1]->ports[last_port]->gates_state[aux_acll];
-                    char* aux_switx_number = copyCharArray(ptr_switches[count_switches-1]->switx_number, ptr_switches[count_switches-1]->length_switx_number);
-                    int aux1 = atoi(aux_switx_number);
-                    int aux_port_number = (int)ptr_switches[count_switches-1]->ports[last_port]->port_number;
-                    //printf("aux port number : %d\n",aux_port_number);
-                    //list_number = 1;
-                    printf("debug4\n");
-                    sprintf(myquery, "INSERT INTO info(switch_number,port_number,list_number,index_,period,gates_state) VALUES(%d, %d, %d, %d, %li, %d)",aux1, aux_port_number,list_number, aux_acll, aux_period, aux_gates_state);
-
-                    //printf("[DATABASE] Query\n");
-                    if (mysql_query(conn, myquery))
-                    {
-                        fprintf(stderr, "%s\n", mysql_error(conn));
-                        exit(1);
-                    }
-                    //printf("[DATABASE] Configuration added in database\n");
-
-
-                }
+                InsertConfigInDB(ptr_switches, ptr_count_switches, conn);
             }
 
-            if(strcmp(buffer, "select") == 0)
+            if(strcmp(buffer, "show") == 0)
             {
-                printf("------- SELECT -------\n");
-
-                conn = mysql_init(NULL);
-                // Connect to database
-                if (!mysql_real_connect(conn, server, user, passwd, db, 0, NULL, 0))
-                {
-                    fprintf(stderr, "%s\n", mysql_error(conn));
-                    exit(1);
-                }
-
-                char* myquery = malloc(sizeof(char)*200);
-                myquery = "select distinct list_number, switch_number from info order by switch_number";
-
-                if (mysql_query(conn, myquery))
-                {
-                    fprintf(stderr, "%s\n", mysql_error(conn));
-                    exit(1);
-                }
-
-                res = mysql_use_result(conn);
-
-                // output table name
-                printf("   List ID    | Switch number\n");
-                printf("--------------|-------------\n");
-                while ((row = mysql_fetch_row(res)) != NULL)
-                printf("       %s           %s\n", row[0],row[1]);
+                Show(conn);
             }
             
             if(strstr(buffer, "select ") != NULL)
             {
-                char input_switch[10] = "";
-                char input_list[10] = "";
-                //char* p_input_switch = &input_switch[0];
-
-                const char* pos = &buffer[0];
-                int length_counter = 0;
-
-                char arg[1] = "s";
-                char* p_arg = &arg[0];
-
-                readArgumentValue(p_arg, &buffer[0], strlen(buffer), &input_switch[0]);
-
-                *p_arg = 'l';
-                readArgumentValue(p_arg, &buffer[0], strlen(buffer), &input_list[0]);
-
-                printf("S: %s\n", input_switch);
-                printf("L: %s\n", input_list);
-
-                char* myquery = malloc(sizeof(char)*200);
-                sprintf(myquery,"SELECT  port_number, index_, period, gates_state from info where switch_number = %s and list_number = %s order by port_number, index_ asc", input_switch, input_list);
-
-                if (mysql_query(conn, myquery))
-                {
-                    fprintf(stderr, "%s\n", mysql_error(conn));
-                    exit(1);
-                }
-
-                res = mysql_use_result(conn);
-
-                // output table SELECTname
-                printf("Port number | Index |    Period    | Gates state \n");
-                printf("------------|-------|--------------|-------------\n");
-                while ((row = mysql_fetch_row(res)) != NULL)
-                printf("    %s         %s        %s           %s \n", row[0],row[1],row[2], row[3]);
-
-
+                Select_args(conn, buffer);
             }
 
         }
@@ -219,8 +90,174 @@ void main()
     free(ptr_switches);
 }
 
+void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL *conn)
+{
+    int list_number = 1;
 
-void readArgumentValue(char* arg, char* pos, int bufferLength, char* dest)
+    for(int i=0; i<*ptr_count_switches; i++)
+    {
+        char* myquery = malloc(sizeof(char)*200);
+
+        myquery = malloc(sizeof(char)*200);
+        sprintf(myquery, "select list_number, switch_number from info group by switch_number, list_number HAVING switch_number=%s order by list_number DESC"
+                ,ptr_switches[i]->switx_number);
+        //Query to find the last list_number
+        if (mysql_query(conn, myquery))
+        {
+            fprintf(stderr, "%s\n", mysql_error(conn));
+            exit(1);
+        }
+
+        MYSQL_RES *query_results = mysql_store_result(conn);
+        if(query_results==NULL)
+        {
+            fprintf(stderr, "No data to fetch");
+            exit(1);
+        }
+
+        MYSQL_ROW row = mysql_fetch_row(query_results);
+        if (row!=NULL)
+        {
+            printf("ASDFASDF: %s\n", row[0]);
+            list_number = row[0] ? atoi(row[0]) : 0;
+            list_number++;
+        }
+        else
+        {
+            list_number = 1;
+            printf("[DATABASE] Row is null\n");
+        }
+
+        printf("[DATABASE] LIST NUMBER: %d\n", list_number);
+
+
+        //*************************************************************
+        memset(myquery, 0, sizeof myquery);
+
+        printf("[SWITCH: %d] \n", i);
+        printf("\tID: %s \n", ptr_switches[i]->switx_number);
+        printf("\tNumber of Ports: %d \n", ptr_switches[i]->ports_quantity);
+        for(int j = 0; j < ptr_switches[i]->ports_quantity; j++)
+        {
+            printf("\t[PORT: %d ] \n", ptr_switches[i]->ports[j]->port_number);
+            printf("\t\tadmin_control_list_length: %d \n", ptr_switches[i]->ports[j]->admin_control_list_length);
+            printf("\t\tadmin_control_list_length: %f \n", ptr_switches[i]->ports[j]->hypercycle);
+
+            for(int k=0; k < ptr_switches[i]->ports[j]->admin_control_list_length; k++)
+            {
+                printf("\t\tPeriod: ");
+                printf("%lu", ptr_switches[i]->ports[j]->period[k]);
+                printf("\t\t\tgate_states: ");
+                printf("%d \n", ptr_switches[i]->ports[j]->gates_state[k]);
+
+                sprintf(myquery, "INSERT INTO info(switch_number,port_number,list_number,index_,period,gates_state) "
+                                 "VALUES(%s, %d, %d, %d, %li, %d)"
+                        ,ptr_switches[i]->switx_number
+                        ,ptr_switches[i]->ports[j]->port_number
+                        ,list_number
+                        ,k
+                        ,ptr_switches[i]->ports[j]->period[k]
+                        ,ptr_switches[i]->ports[j]->gates_state[k]);
+
+                if (mysql_query(conn, myquery))
+                {
+                    fprintf(stderr, "%s\n", mysql_error(conn));
+                    exit(1);
+                }
+            }
+        }
+
+        printf("[DATABASE] Configuration added in database\n");
+        /*int last_port = ptr_switches[(*ptr_count_switches)-1]->ports_quantity;
+        printf("debug1: %d\n", last_port);
+        int debug = ptr_switches[(*ptr_count_switches)-1]->ports[last_port]->port_number;
+        printf("debug2\n");
+        int aux_acll = ptr_switches[(*ptr_count_switches)-1]->ports[last_port]->admin_control_list_length;
+        printf("debug3\n");
+        unsigned long aux_period = ptr_switches[(*ptr_count_switches)-1]->ports[last_port]->period[aux_acll];
+        int aux_gates_state = ptr_switches[(*ptr_count_switches)-1]->ports[last_port]->gates_state[aux_acll];
+        char* aux_switx_number = copyCharArray(ptr_switches[(*ptr_count_switches)-1]->switx_number, ptr_switches[(*ptr_count_switches)-1]->length_switx_number);
+        int aux1 = atoi(aux_switx_number);
+        int aux_port_number = (int)ptr_switches[(*ptr_count_switches)-1]->ports[last_port]->port_number;
+        //printf("aux port number : %d\n",aux_port_number);
+        //list_number = 1;
+        printf("debug4\n");
+        sprintf(myquery, "INSERT INTO info(switch_number,port_number,list_number,index_,period,gates_state) VALUES(%d, %d, %d, %d, %li, %d)",aux1, aux_port_number,list_number, aux_acll, aux_period, aux_gates_state);
+
+        //printf("[DATABASE] Query\n");
+        if (mysql_query(conn, myquery))
+        {
+            fprintf(stderr, "%s\n", mysql_error(conn));
+            exit(1);
+        }
+        //printf("[DATABASE] Configuration added in database\n");
+        */
+
+    }
+}
+
+void Show(MYSQL *conn)
+{
+    char* myquery = malloc(sizeof(char)*200);
+    myquery = "select distinct list_number, switch_number from info order by switch_number";
+
+    if (mysql_query(conn, myquery))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    }
+
+    MYSQL_RES *res = mysql_use_result(conn);
+    MYSQL_ROW row;
+
+    // output table name
+    printf("   List ID    | Switch number\n");
+    printf("--------------|-------------\n");
+    while ((row = mysql_fetch_row(res)) != NULL)
+    printf("       %s           %s\n", row[0],row[1]);
+}
+
+void Select_args(MYSQL *conn, char *buffer)
+{
+    char input_switch[10] = "";
+    char input_list[10] = "";
+    //char* p_input_switch = &input_switch[0];
+
+    const char* pos = &buffer[0];
+    int length_counter = 0;
+
+    char arg[1] = "s";
+    char* p_arg = &arg[0];
+
+    ReadArgumentValue(p_arg, &buffer[0], strlen(buffer), &input_switch[0]);
+
+    *p_arg = 'l';
+    ReadArgumentValue(p_arg, &buffer[0], strlen(buffer), &input_list[0]);
+
+    printf("S: %s\n", input_switch);
+    printf("L: %s\n", input_list);
+
+    char* myquery = malloc(sizeof(char)*200);
+    sprintf(myquery,"SELECT  port_number, index_, period, gates_state from info where switch_number = %s and list_number = %s order by port_number, index_ asc", input_switch, input_list);
+
+    if (mysql_query(conn, myquery))
+    {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    }
+
+    MYSQL_RES *res = mysql_use_result(conn);
+    MYSQL_ROW row;
+
+    // output table SELECTname
+    printf("Port number | Index |    Period    | Gates state \n");
+    printf("------------|-------|--------------|-------------\n");
+    while ((row = mysql_fetch_row(res)) != NULL)
+    printf("    %s         %s        %s           %s \n", row[0],row[1],row[2], row[3]);
+
+}
+
+void ReadArgumentValue(char* arg, char* pos, int bufferLength, char* dest)
 {
     memset(dest, 0, sizeof dest);
 
