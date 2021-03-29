@@ -1,7 +1,7 @@
 CC = gcc
 VPATH = ../Client
 CFLAGS = -I../Client
-CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs #-fsanitize=address -fno-omit-frame-pointer -O2
+CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs -fsanitize=address -fno-omit-frame-pointer -g
 CFLAGS += $(mysql_config --cflags) -MMD
 #CFLAGS += $(pkg-config --cflags mysqlclient) -MMD
 LDFLAGS = $(mysql_config --libs) -lmysqlclient -lm
