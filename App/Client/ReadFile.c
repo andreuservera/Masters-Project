@@ -1,6 +1,5 @@
 #include "utils.h"
 #include "parser.h"
-#include <stdlib.h>
 #include <mysql/mysql.h>
 #include <ctype.h>
 
@@ -15,32 +14,31 @@
 void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL* conn);
 void Show(MYSQL* conn);
 void Select_args(MYSQL *conn, char *buffer);
-void ReadArgumentValue(char* arg, char* ptr, int bufferLength, char* dest);
+void ReadArgumentValue(char* arg, char* ptr, size_t bufferLength, char* dest);
 
 
-void main()
+int main(void)
 {
     //***************************************
     //********** Parse config file **********
     //***************************************
-    int count_switches = 0;
-    int* ptr_count_switches = &count_switches;
+//    int count_switches = 0;
+//    int* ptr_count_switches = &count_switches;
 
-    switx **ptr_switches;
-    ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
+//    switx **ptr_switches;
+//    ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
 
-    ReadConfigFile(ptr_count_switches, ptr_switches);
-    printf("Number of Switches: %u\n", count_switches);
+//    ReadConfigFile(ptr_count_switches, ptr_switches);
+//    printf("Number of Switches: %u\n", count_switches);
 
-    WriteXmlInstance(ptr_count_switches, ptr_switches);
+//    WriteXmlInstance(ptr_count_switches, ptr_switches);
 
 
     //***************************************
     //********** Manage user input **********
     //***************************************
     MYSQL* conn;
-    MYSQL_RES *res;
-    MYSQL_ROW row;
+
 
     char* server = "localhost";
     char* user = "default";
@@ -69,7 +67,20 @@ void main()
 
             if(strcmp(buffer, "store") == 0 || strcmp(buffer, "store-upload") == 0)
             {
+                int count_switches = 0;
+                int* ptr_count_switches = &count_switches;
+
+                switx **ptr_switches;
+                ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
+
+                ReadConfigFile(ptr_count_switches, ptr_switches);
+                printf("Number of Switches: %u\n", count_switches);
+
+                WriteXmlInstance(ptr_count_switches, ptr_switches);
+                printf("debug1\n");
                 InsertConfigInDB(ptr_switches, ptr_count_switches, conn);
+
+                free(ptr_switches);
             }
 
             if(strcmp(buffer, "show") == 0)
@@ -84,10 +95,10 @@ void main()
 
         }
 
-        memset(buffer, 0, sizeof buffer);
+        memset(buffer, 0, strlen(buffer));
     }
 
-    free(ptr_switches);
+    //free(ptr_switches);
 }
 
 void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL *conn)
@@ -132,7 +143,7 @@ void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL *conn
 
 
         //*************************************************************
-        memset(myquery, 0, sizeof myquery);
+        memset(myquery, 0, strlen(myquery));
 
         printf("[SWITCH: %d] \n", i);
         printf("\tID: %s \n", ptr_switches[i]->switx_number);
@@ -223,8 +234,8 @@ void Select_args(MYSQL *conn, char *buffer)
     char input_list[10] = "";
     //char* p_input_switch = &input_switch[0];
 
-    const char* pos = &buffer[0];
-    int length_counter = 0;
+    //const char* pos = &buffer[0];
+    //int length_counter = 0;
 
     char arg[1] = "s";
     char* p_arg = &arg[0];
@@ -257,14 +268,14 @@ void Select_args(MYSQL *conn, char *buffer)
 
 }
 
-void ReadArgumentValue(char* arg, char* pos, int bufferLength, char* dest)
+void ReadArgumentValue(char* arg, char* pos, size_t bufferLength, char* dest)
 {
-    memset(dest, 0, sizeof dest);
+    memset(dest, 0, strlen(dest));
 
     char hyphen[1] = "-";
     char* p_hyphen = &hyphen[0];
 
-    int length_counter = 0;
+    size_t length_counter = 0;
 
     int exit = 0;
     while(length_counter < bufferLength && exit == 0)

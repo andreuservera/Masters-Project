@@ -21,10 +21,12 @@
 *
 */
 
-void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity)
+void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
 {
-	char c;
-	int blanks=0;
+    memset(word, 0, strlen(word));
+
+    char c;
+    //int blanks=0;
 	word_length[0] = 0;
 	
 	if (verbosity == 1)
@@ -32,7 +34,7 @@ void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity)
 		printf("[WORD]: ");
 	}
 
-	while((c = fgetc(file_pointer)) != EOF)
+    while((c = (char)fgetc(file_pointer)) != EOF)
 	{
 		if((c == ' ' || c == '\n') || (c == '\t' || c == ','))
 		{
@@ -63,7 +65,7 @@ void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity)
 
 	if(verbosity == 1)
 	{
-	  printf("\nLength; %d", word_length[0]);
+      printf("\nLength; %zu", word_length[0]);
 	  printf("\n");
 	}
 }
@@ -88,25 +90,26 @@ void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity)
  * @return [int] If both words are the same return TRUE(1) and if not, returns FALSE(0)
  *
  */
-int compareWords(char *wordA, int lengthA, char *wordB, int lengthB, int verbosity)
+int compareWords(char *wordA, size_t lengthA, char *wordB, size_t lengthB, int verbosity)
 {
     if(verbosity == 1)
     {
        printf("\n*******COMPARING********\n");
     }
 
-    int i;
+    size_t i;
     if(lengthA != lengthB){
              if(verbosity == 1)
         {
-           printf("[COMPARE] different length, length A: %d   length B: %d\n", lengthA, lengthB);
+           printf("[COMPARE] different length, length A: %zu   length B: %zu\n", lengthA, lengthB);
         }
 
 
         return FALSE;
     }
     else{
-        for(i = 0; i<lengthA; i++){
+        for(i = 0 ; i < lengthA ; i++)
+        {
             if(wordA[i] != wordB[i]){
                 if(verbosity == 1)
                 {
@@ -143,11 +146,12 @@ int compareWords(char *wordA, int lengthA, char *wordB, int lengthB, int verbosi
 *
 */
 
-char * copyCharArray(char *pointer, int array_length)
+char * copyCharArray(char *pointer, size_t array_length)
 {
-    int i;
+    size_t i;
     char *newpointer;
-    newpointer = malloc(array_length*sizeof(char));
+
+    newpointer = (char *) malloc((array_length + 1)*sizeof(char));
     for(i = 0; i < array_length; i++)
     {
         newpointer[i] = pointer[i];
@@ -176,13 +180,13 @@ char * copyCharArray(char *pointer, int array_length)
 int BinCharToInt (char *pointer, int length)
 {
     int i;
-    char bit;
+    //char bit;
     int int_value = 0;
     for(i = 0; i < length; i++)
     {
         if (pointer[i] == '1')
         {
-            int_value = int_value + pow(2,(length-i-1));
+            int_value = int_value + (int)pow(2,(length-i-1));
         }
 
     }
@@ -201,7 +205,7 @@ char * readnextWord()
 	int i = 0;
 
 
-	c = fgetc(stdin);
+    c = (char)fgetc(stdin);
 
 	while((c == ' ') || (c =='\n') ){
 		if(c == '\n')
@@ -211,7 +215,7 @@ char * readnextWord()
 			word[2] = 'L';
   			return word;
 		}
-		c =fgetc(stdin);
+        c = (char)fgetc(stdin);
 	}
 
 
@@ -219,7 +223,7 @@ char * readnextWord()
 	{
 		printf("Character: %c\n",c);
 		word[i] = c;
-		c =fgetc(stdin);
+        c = (char)fgetc(stdin);
 		i++;
 	}
 

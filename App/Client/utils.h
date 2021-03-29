@@ -1,9 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-
+#include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -36,7 +36,7 @@
 *
 */
 
-void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity);
+void getWord(FILE * file_pointer, char *word, size_t *word_length, int verbosity);
 
 
 
@@ -59,7 +59,7 @@ void * getWord(FILE * file_pointer,char *word, int *word_length, int verbosity);
  * @return [int] If both words are the same return TRUE(1) and if not, returns FALSE(0)
  *
  */
-int compareWords(char *wordA, int lengthA, char *wordB, int lengthB, int verbosity);
+int compareWords(char *wordA, size_t lengthA, char *wordB, size_t lengthB, int verbosity);
 
 
 
@@ -79,7 +79,7 @@ int compareWords(char *wordA, int lengthA, char *wordB, int lengthB, int verbosi
 *
 */
 
-char * copyCharArray(char *pointer, int array_length);
+char * copyCharArray(char *pointer, size_t array_length);
 
 
 
@@ -106,7 +106,7 @@ int BinCharToInt (char *pointer, int length);
 /**************************************************************************/
 /** @name readnextWord ****************************************************/
 /**************************************************************************/
-char * readnextWord();
+char * readnextWord(void);
 
 
 /**************************************************************************/
