@@ -23,51 +23,97 @@
 
 void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
 {
-    memset(word, 0, strlen(word));
+//    memset(word, 0, strlen(word));
+
+//    char c;
+//    //int blanks=0;
+//	word_length[0] = 0;
+	
+//	if (verbosity == 1)
+//	{
+//		printf("[WORD]: ");
+//	}
+
+//    while((c = (char)fgetc(file_pointer)) != EOF)
+//	{
+//		if((c == ' ' || c == '\n') || (c == '\t' || c == ','))
+//		{
+//			if(word_length[0] != 0)
+//			{
+//				break;
+//			}
+//		}
+//		else
+//		{
+//			if(verbosity == 1)
+//			{
+//				printf("%c",c);
+//	      	}
+
+//	    word[word_length[0]] = c;
+//		word_length[0]++;
+//	  	}
+//	}
+
+//	if (c == EOF){
+//		if(verbosity == 1)
+//		{
+//			printf("\n[DEBUG]: End of file");
+//		}
+//	}
+
+
+//	if(verbosity == 1)
+//	{
+//      printf("\nLength; %zu", word_length[0]);
+//	  printf("\n");
+//	}
+
+
 
     char c;
-    //int blanks=0;
-	word_length[0] = 0;
-	
-	if (verbosity == 1)
-	{
-		printf("[WORD]: ");
-	}
+
+    word_length[0] = 0;
+
+    if (verbosity == 1)
+    {
+        printf("[WORD]: ");
+    }
 
     while((c = (char)fgetc(file_pointer)) != EOF)
-	{
-		if((c == ' ' || c == '\n') || (c == '\t' || c == ','))
-		{
-			if(word_length[0] != 0)
-			{
-				break;
-			}
-		}
-		else
-		{
-			if(verbosity == 1)
-			{
-				printf("%c",c);
-	      	}
+    {
+        if((c == ' ' || c == '\n') || (c == '\t' || c == ','))
+        {
+            if(word_length[0] != 0)
+            {
+                break;
+            }
+        }
+        else
+        {
+            if(verbosity == 1)
+            {
+                printf("%c",c);
+            }
 
-	    word[word_length[0]] = c;
-		word_length[0]++;
-	  	}
-	}
+        word[word_length[0]] = c;
+        word_length[0]++;
+        }
+    }
 
-	if (c == EOF){
-		if(verbosity == 1)
-		{
-			printf("\n[DEBUG]: End of file");
-		}
-	}
+    if (c == EOF){
+        if(verbosity == 1)
+        {
+            printf("\n[DEBUG]: End of file");
+        }
+    }
 
 
-	if(verbosity == 1)
-	{
+    if(verbosity == 1)
+    {
       printf("\nLength; %zu", word_length[0]);
-	  printf("\n");
-	}
+      printf("\n");
+    }
 }
 
 
