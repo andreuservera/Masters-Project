@@ -79,7 +79,7 @@ void writeList(FILE * file_pointer, unsigned long *period, int *gates_state, flo
 /**************************************************************************/
 /** @name ReadFile  *******************************************************/
 /**************************************************************************/
-void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
+void ReadConfigFile(int* ptr_count_switches, switx *(*p_switches)[])
 {
     //*****************+****** VARIABLES **********************
 
@@ -124,25 +124,30 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
             //aux_word = copyCharArray(word,length_word);
 
 
-            switx* ptr_switch = malloc(sizeof(switx));
-            if(ptr_switch == NULL)
-            {
-                printf("Couldn't allocate memory.\n");
-                exit(1);
-            }
+//            switx* ptr_switch = malloc(sizeof(switx));
+//            if(ptr_switch == NULL)
+//            {
+//                printf("Couldn't allocate memory.\n");
+//                exit(1);
+//            }
 
-            ptr_switch->switx_number = malloc(sizeof(char) * (length_word+1));
-            if(ptr_switch->switx_number == NULL)
-            {
-                printf("Couldn't allocate memory.\n");
-                exit(1);
-            }
+//            ptr_switch->switx_number = malloc(sizeof(char) * (length_word+1));
+//            if(ptr_switch->switx_number == NULL)
+//            {
+//                printf("Couldn't allocate memory.\n");
+//                exit(1);
+//            }
 
             //ptr_switch->switx_number = aux_word;
-            memcpy(ptr_switch->switx_number, word, length_word);
-            ptr_switch->length_switx_number = (int)length_word;                                                      //When we get numbers te function returns length +1
-            ptr_switch->ports_quantity = 0;                                                                     //Initialise the number of ports
-            ptr_switches[(*ptr_count_switches)-1] = ptr_switch;
+            //memcpy(ptr_switch->switx_number, word, length_word); - before
+            memcpy((*p_switches)[*ptr_count_switches]->switx_number, word, length_word);
+
+            //ptr_switch->length_switx_number = (int)length_word; - before
+            //(*p_switches)[*ptr_count_switches]->length_switx_number;
+
+            //ptr_switch->ports_quantity = 0; - before
+            (*p_switches)[*ptr_count_switches]->ports_quantity = 0;
+            //ptr_switches[(*ptr_count_switches)-1] = ptr_switch; -before
 
             //Debug
 //            for(int i = 0; i < *ptr_count_switches; i++)
@@ -151,10 +156,10 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
 //            }
 
 
-            ptr_switches[*ptr_count_switches-1]->ports = malloc(sizeof(port)*NUMBER_OF_PORTS);
+            //ptr_switches[*ptr_count_switches-1]->ports = malloc(sizeof(port)*NUMBER_OF_PORTS); - before
 
-            free(ptr_switch->switx_number);
-            free(ptr_switch);
+            //free(ptr_switch->switx_number); - before
+            //free(ptr_switch); - before
             block = 1;
 
         }
@@ -162,20 +167,34 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         //******* GET A PORT **********
         if(strcmp(word, "port_number:") == 0)
         {
-            getWord(fpointer, word, &length_word, 0);                                                      //Read the port number
-            port* ptr_port = malloc(sizeof(port));                                                               // Space for the structure port
-            aux_word = copyCharArray(word, length_word);                                                   //Store the port number in  a free address
-            ptr_port->port_number = atoi(aux_word);                                                       //Store the port number in the structure, we need to convert it to an integer
-            ptr_port->admin_control_list_length = 0;                                                      //Initialise the length of the list
-            aux_hypercycle = 0;                                                                           //Initialise the value of the hypercycle
+            // explicit pointer to array of pointers to structs.
+            // aka, pointer to the array of pointers to port structs from the current switch
+            port *(*p_ports)[] = &(*p_switches)[ptr_count_switches]->t_ports;
 
-            last_port = ptr_switches[*ptr_count_switches-1]->ports_quantity;                                //Store the number of ports in a variable to make the code more readable
-            ptr_switches[*ptr_count_switches-1]->ports[last_port] = ptr_port;                               //Store the new switch in the array of switches
+            getWord(fpointer, word, &length_word, 0);
+
+            //port* ptr_port = malloc(sizeof(port)); - before
+            //aux_word = copyCharArray(word, length_word); - before
+            //ptr_port->port_number = atoi(aux_word); - before
+            (*p_ports)[(*p_switches)[*ptr_count_switches]->ports_quantity]->port_number = atoi(word);
+
+            //ptr_port->admin_control_list_length = 0; - before
+            (*p_ports)[(*p_switches)[*ptr_count_switches]->ports_quantity]->admin_control_list_length = 0;
+
+            //aux_hypercycle = 0; - before
+            aux_hypercycle = 0;
+
+
+            // before
+            /*last_port = ptr_switches[*ptr_count_switches-1]->ports_quantity;
+            ptr_switches[*ptr_count_switches-1]->ports[last_port] = ptr_port;
             ptr_switches[*ptr_count_switches-1]->ports_quantity++;                                          //Update the number of ports in the switch
             ptr_switches[*ptr_count_switches-1]->ports[last_port]->period = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);        //Allocate memory for the lists of the port
-            ptr_switches[*ptr_count_switches-1]->ports[last_port]->gates_state = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);
+            ptr_switches[*ptr_count_switches-1]->ports[last_port]->gates_state = malloc(sizeof(unsigned long)*NUMBER_OF_LISTS);*/
 
-            free(ptr_port);
+            (*p_switches)[*ptr_count_switches]->ports_quantity++;
+
+            //free(ptr_port); - before
             block = 0;                                                                                    //If the port have been read then we can proceed  to read the configuration
             getWord(fpointer, word, &length_word, 0);                                                     //Read the period
         }
@@ -184,9 +203,10 @@ void ReadConfigFile(int* ptr_count_switches, switx **ptr_switches)
         if(block == 0)
         {
         //printf("[INFO] ---- NEW LIST----\n");
-            aux_word = copyCharArray(word, length_word);
-            aux_acll = ptr_switches[*ptr_count_switches-1]->ports[last_port]->admin_control_list_length;              //Store the length of the list in a variable to make the code more readable
-            ptr_switches[*ptr_count_switches-1]->ports[last_port]->period[aux_acll] = (unsigned long)atol(aux_word);                 //Convert the period into a double and store it
+            //aux_word = copyCharArray(word, length_word); - before
+            //aux_acll = ptr_switches[*ptr_count_switches-1]->ports[last_port]->admin_control_list_length; - before
+            //ptr_switches[*ptr_count_switches-1]->ports[last_port]->period[aux_acll] = (unsigned long)atol(aux_word); - before
+
             aux_hypercycle = aux_hypercycle + (unsigned long)atol(aux_word);                                                       //Calculate the new hypercycle
             ptr_switches[*ptr_count_switches-1]->ports[last_port]->hypercycle = (float)aux_hypercycle/1000000000;     //Convert the hypercyle to seconds and store it
 

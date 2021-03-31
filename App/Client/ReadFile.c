@@ -5,16 +5,17 @@
 
 /****************************** M A C R O S ******************************/
 
-#define SIZE_POINTER 8
-#define NUMBER_OF_PORTS 6
-#define NUMBER_OF_SWITCHS 8
-#define NUMBER_OF_LISTS 100
+//#define SIZE_POINTER 8
+//#define MAX_NUMBER_OF_PORTS 6
+//#define MAX_NUMBER_OF_SWITCHES 8
+//#define NUMBER_OF_LISTS 100
 
 
 void InsertConfigInDB(switx **ptr_switches, int *ptr_count_switches, MYSQL* conn);
 void Show(MYSQL* conn);
 void Select_args(MYSQL *conn, char *buffer);
 void ReadArgumentValue(char* arg, char* ptr, size_t bufferLength, char* dest);
+
 
 
 int main(void)
@@ -70,17 +71,34 @@ int main(void)
                 int count_switches = 0;
                 int* ptr_count_switches = &count_switches;
 
-                switx **ptr_switches;
-                ptr_switches = malloc(sizeof(switx)*NUMBER_OF_SWITCHS);
+                //array of pointers to structs.
+                switx *t_switches[MAX_NUMBER_OF_SWITCHES];
 
-                ReadConfigFile(ptr_count_switches, ptr_switches);
+                // allocate memory for each switch
+                for(size_t i = 0; i < MAX_NUMBER_OF_SWITCHES; i++)
+                {
+                    t_switches[i] = malloc(sizeof(switx));
+
+                    // allocate memory for each port in every switch
+                    for(size_t j = 0; j < MAX_NUMBER_OF_PORTS; j++)
+                    {
+                        t_switches[i]->t_ports[j] = malloc(sizeof(port));
+                    }
+                }
+
+                //pointer to array of pointers to structs.
+                switx *(*p_switches)[] = &t_switches;
+
+
+                ReadConfigFile(ptr_count_switches, p_switches);
                 printf("Number of Switches: %u\n", count_switches);
 
                 WriteXmlInstance(ptr_count_switches, ptr_switches);
                 printf("debug1\n");
                 InsertConfigInDB(ptr_switches, ptr_count_switches, conn);
 
-                free(ptr_switches);
+                free(p_switches);
+                free(t_switches);
             }
 
             if(strcmp(buffer, "show") == 0)
