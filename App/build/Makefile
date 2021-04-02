@@ -1,20 +1,20 @@
 CC = gcc
-VPATH = ../Client
-CFLAGS = -I../Client
-CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs #-fsanitize=address -fno-omit-frame-pointer -O2
+VPATH = ../Client:../json
+CFLAGS = -I../Client -I../json
+CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs #-fsanitize=address -fno-omit-frame-pointer -g
 CFLAGS += $(mysql_config --cflags) -MMD
 #CFLAGS += $(pkg-config --cflags mysqlclient) -MMD
 LDFLAGS = $(mysql_config --libs) -lmysqlclient -lm
 #LDFLAGS = $(pkg-config --libs) -lmysqlclient -lm
-OBJECTS = ReadFile.o parser.o utils.o 
+OBJECTS = Main.o parser.o utils.o json.o
 
-all: ReadFile
+all: Main
 
-ReadFile: $(OBJECTS)
+Main: $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDFLAGS)
 
 -include $(OBJECTS:.o=.d)
 
 clean:
-	rm -f *.o *.d ReadFile
+	rm -f *.o *.d Main
 

@@ -3,23 +3,100 @@
 #include "utils.h"
 
 
-/**************************************************************************/
-/** @name getWord *********************************************************/
-/**************************************************************************/
-//@{
+static size_t file_size(FILE *file)
+{
+    if (fseek(file, 0L, SEEK_END) == -1)
+    {
+        return FILE_ERROR;
+    }
 
-/**
-* @brief Read a word of a file a gives its length, if its the end
-* of the line the length of the word is 0
-*
-* @param [FILE *file_pointer] pointer to read the file
-*
-* @param [char *word] address where the word will be stored, it MUST have enough
-* space
-*
-* @param [int *word_length] address where the length of the word is stored
-*
-*/
+    long size = ftell(file);
+
+    if (size == -1)
+    {
+        return FILE_ERROR;
+    }
+    if (fseek(file, 0L, SEEK_SET) == -1)
+    {
+        return FILE_ERROR;
+    }
+    return (size_t)size;
+}
+
+size_t file_get_size(const char *path)
+{
+    FILE *file = fopen(path, "rb");
+
+    if (file == NULL)
+    {
+        return FILE_ERROR;
+    }
+
+    size_t size = file_size(file);
+
+    fclose(file);
+    return size;
+}
+
+static char *file_data(const char *path, const char *prefix, const char *suffix)
+{
+    FILE *file = fopen(path, "rb");
+
+    if (file == NULL)
+    {
+        return NULL;
+    }
+
+    size_t size = file_size(file);
+
+    if (size == FILE_ERROR)
+    {
+        return NULL;
+    }
+
+    size_t size_prefix = 0;
+    size_t size_suffix = 0;
+
+    if (prefix != NULL)
+    {
+        size_prefix = strlen(prefix);
+    }
+    if (suffix != NULL)
+    {
+        size_suffix = strlen(suffix);
+    }
+
+    char *str = malloc(size + size_prefix + size_suffix + 1);
+
+    if (str == NULL)
+    {
+        return NULL;
+    }
+    if (fread(str + size_prefix, 1, size, file) != size)
+    {
+        free(str);
+        str = NULL;
+    }
+    else
+    {
+        if (size_prefix > 0)
+        {
+            memcpy(str, prefix, size_prefix);
+        }
+        if (size_suffix > 0)
+        {
+            memcpy(str + size, suffix, size_suffix);
+        }
+        str[size + size_prefix + size_suffix] = '\0';
+    }
+    fclose(file);
+    return str;
+}
+
+char *file_read(const char *path)
+{
+    return file_data(path, NULL, NULL);
+}
 
 void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
 {
@@ -71,25 +148,6 @@ void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
 }
 
 
-/**************************************************************************/
-/** @name compareWords ****************************************************/
-/**************************************************************************/
-//@{
-
-/**
- * @brief Compare two words(strings)
- *
- * @param [char *wordA] pointer to the first word
- *include
- * @param [int lengthA] number of characters contained in wordA
- *
- * @param [char *wordB] pointer to the second word
- *
- * @param [int lengthB] number of characters contained in wordB
- *
- * @return [int] If both words are the same return TRUE(1) and if not, returns FALSE(0)
- *
- */
 int compareWords(char *wordA, size_t lengthA, char *wordB, size_t lengthB, int verbosity)
 {
     if(verbosity == 1)
@@ -130,21 +188,7 @@ int compareWords(char *wordA, size_t lengthA, char *wordB, size_t lengthB, int v
 }
 
 
-/**************************************************************************/
-/** @name copyCharArray ***************************************************/
-/**************************************************************************/
-//@{
 
-/**
-* @brief Copies a char array in another address
-*
-* @param [char *pointer] pointer to the list of characters
-*
-* @param [ int array_length] number of characters to be copied from the array
-*
- * @return [int] An address containing the copied characters
-*
-*/
 
 char * copyCharArray(char *pointer, size_t array_length)
 {
@@ -161,21 +205,6 @@ char * copyCharArray(char *pointer, size_t array_length)
 }
 
 
-/**************************************************************************/
-/** @name BinCharToInt ****************************************************/
-/**************************************************************************/
-//@{
-
-/**
- * @brief Convert a binary number, given in string format, to decimal
- *
- * @param [char *pointer] pointer to the list of characters
- *
- * @param [ int length] number of characters
- *
- * @return [int] Decimal value
- *
- */
 
 int BinCharToInt (char *pointer, int length)
 {
@@ -195,9 +224,6 @@ int BinCharToInt (char *pointer, int length)
 }
 
 
-/**************************************************************************/
-/** @name readnextWord ****************************************************/
-/**************************************************************************/
 char * readnextWord()
 {
 	char c;
@@ -231,9 +257,6 @@ char * readnextWord()
 }
 
 
-/**************************************************************************/
-/** @name charToInt ****************************************************/
-/**************************************************************************/
 int charToInt(char c){
     int num = 0;
     num = c - '0';
