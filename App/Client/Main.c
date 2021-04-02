@@ -146,26 +146,35 @@ static json *parse(const char *path)
 //    }
 //}
 
-static void read_values(const json *node)
+static void read_values(const json *node, struct t_port_values *port_values)
 {
     node = json_item(node, 0);
-    puts("values: [");
+
+    struct t_port_values *current_port_values = createPortValues();
+
+
+
     while (node != NULL)
     {
         json *data = json_item(node, 0);
         if(json_is_real(data))
         {
             printf("Period: %lu\n", json_real(data));
+            current_port_values->period = json_real(data);
         }
 
         data = json_item(node, 1);
         if(json_is_real(data))
         {
             printf("Gate_states: %lu\n", json_real(data));
+            current_port_values->gate_states = (int)json_real(data); //TODO: bit
         }
 
         node = json_next(node);
+
+        (current_port_values->size)++;
     }
+
 }
 
 static void read_json(const json *node, void* switch_data)
@@ -182,8 +191,6 @@ static void read_json(const json *node, void* switch_data)
     if(json_is_string(data_switch))
     {
         printf("[SWITCH]---vvvvvv\n");
-        json_print(data_switch);
-
         printf("%s -> %s\n", json_name(data_switch), json_string(data_switch));
         strcpy(current_switch->name, json_string(data_switch));
 
@@ -191,18 +198,19 @@ static void read_json(const json *node, void* switch_data)
         if(json_is_array(data_port_list))
         {
             printf("[PORT LIST, size = %zu]---vvvvvv\n", json_items(data_port_list));
-            json_print(data_port_list);
-            printf("[PORT LIST]---^^^^^^^^\n");
+            current_switch->port_list->size = json_items(data_port_list);
             for(size_t i = 0; i < json_items(data_port_list); i++)
             {
                 json *n_port = json_item(data_port_list, i);
                 printf("==== N-PORT ====\n");
-                json_print(n_port);
-
 
                 printf("port number: %d\n", (int)json_real(json_node(n_port, "port_number")));
-                read_values(json_node(n_port, "values"));
+                current_switch->port_list->port.number = (int)json_real(json_node(n_port, "port_number"));
+
+                read_values(json_node(n_port, "values"), current_switch->port_list->port.values);
             }
+            printf("[PORT LIST]---^^^^^^^^\n");
+
         }
         else
         {
@@ -210,47 +218,7 @@ static void read_json(const json *node, void* switch_data)
         }
 
         printf("[SWITCH]---^^^^^^^^\n");
-
-
-//        while(json_is_number(data) && strcmp(json_name(data), "port_number") == 0)
-//        {
-//            printf("%s -> %d\n", json_name(data), (int)json_integer(data));
-
-//            (current_switch->port_list->size)++;
-//            current_switch->port_list->port.number = (int)json_integer(data);
-
-//            data = json_next(data);
-//            if(json_is_array(data) && strcmp(json_name(data), "values") == 0)
-//            {
-//                read_values(data);
-//            }
-
-//            data = json_node(data, "port_number");
-//            printf("=======================\n");
-//            json_print(data);
-//            printf("=======================\n");
-//        }
-        /*if(json_is_number(data) && strcmp(json_name(data), "port_number") == 0)
-        {
-            printf("%s -> %d\n", json_name(data), (int)json_integer(data));
-
-            (current_switch->port_list->size)++;
-            current_switch->port_list->port.number = (int)json_integer(data);
-
-            data = json_next(data);
-            if(json_is_array(data) && strcmp(json_name(data), "values") == 0)
-            {
-                read_values(data);
-            }
-        }
-        else
-        {
-            printf("[ERROR]Bad format in config.json file...\n");
-            exit(EXIT_FAILURE);
-        }*/
     }
-
-
 
     free(current_switch);
 }
