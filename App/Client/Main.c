@@ -89,6 +89,7 @@ static void read_json(const json *node, void* list)
 
         struct t_switch current_switch;
         current_switch.port_list = (struct t_port_list *)malloc(sizeof(struct t_port_list));
+        current_switch.port_list->size = 0;
         current_switch.port_list->next = NULL;
 
         printf("%s -> %s\n", json_name(data_switch), json_string(data_switch));
@@ -105,6 +106,7 @@ static void read_json(const json *node, void* list)
 
                 struct t_port current_port;
                 current_port.values = (struct t_port_values_list *) malloc(sizeof(struct t_port_values_list));
+                current_port.values->size = 0;
                 current_port.values->next = NULL;
 
                 printf("port number: %d\n", (int)json_real(json_node(n_port, "port_number")));
@@ -140,6 +142,8 @@ int main(void)
     json_foreach(node, (void*)switch_list, read_json);
 
     switch_print_list(switch_list);
+
+    free_switch_list(switch_list);
 
     return 0;
 }

@@ -51,6 +51,7 @@ void switch_push(struct t_switch_list *, struct t_switch);
 void port_push(struct t_port_list *, struct t_port);
 void port_values_push(struct t_port_values_list *, struct t_port_values);
 void switch_print_list(struct t_switch_list *);
+void free_switch_list(struct t_switch_list *);
 
 
 #endif /* SWITCH_H */
