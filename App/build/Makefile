@@ -6,7 +6,7 @@ CFLAGS += $(mysql_config --cflags) -MMD
 #CFLAGS += $(pkg-config --cflags mysqlclient) -MMD
 LDFLAGS = $(mysql_config --libs) -lmysqlclient -lm
 #LDFLAGS = $(pkg-config --libs) -lmysqlclient -lm
-OBJECTS = Main.o parser.o utils.o json.o switch.o
+OBJECTS = Main.o utils.o json.o switch.o
 
 all: Main
 

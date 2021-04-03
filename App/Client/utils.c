@@ -98,7 +98,7 @@ char *file_read(const char *path)
     return file_data(path, NULL, NULL);
 }
 
-void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
+/*void getWord(FILE * file_pointer,char *word, size_t *word_length, int verbosity)
 {
     memset(word, 0, strlen(word));
 
@@ -261,5 +261,5 @@ int charToInt(char c){
     int num = 0;
     num = c - '0';
     return num;
-}
+}*/
 
