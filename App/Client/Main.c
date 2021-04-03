@@ -55,14 +55,12 @@ static void read_values(const json *node, struct t_port_values_list *port_values
         json *data = json_item(node, 0);
         if(json_is_real(data))
         {
-            printf("Period: %lu\n", json_real(data));
             current_port_values.period = json_real(data);
         }
 
         data = json_item(node, 1);
         if(json_is_real(data))
         {
-            printf("Gate_states: %lu\n", json_real(data));
             current_port_values.gate_states = (int)json_real(data); //TODO: bit
         }
 
@@ -70,30 +68,18 @@ static void read_values(const json *node, struct t_port_values_list *port_values
 
         port_values_push(port_values_list, current_port_values);
     }
-    //printf("DEBUG ---> %lu \n", *(long unsigned *)(port_values_list->values.period));
 }
 
 static void read_json(const json *node, void* list)
 {
     struct t_switch_list *switch_list = (struct t_switch_list*)list;
 
-//    struct t_switch *current_switch = NULL;
-//    current_switch = (struct t_switch *) malloc(sizeof(struct t_switch));
-//    current_switch->port_list = switch_create_port_list();
-
-
     json *data_switch = json_node(node, "switch");
     if (json_is_string(data_switch))
     {
-        printf("[SWITCH]---vvvvvv\n");
-
         struct t_switch current_switch;
-        current_switch.port_list = (struct t_port_list *)malloc(sizeof(struct t_port_list));
-        current_switch.port_list->size = 0;
-        current_switch.port_list->next = NULL;
+        current_switch.port_list = switch_create_port_list();
 
-        printf("%s -> %s\n", json_name(data_switch), json_string(data_switch));
-        //strcpy(current_switch->name, json_string(data_switch));
         strcpy(current_switch.name, json_string(data_switch));
 
         json *data_port_list = json_node(node, "port_list");
@@ -102,33 +88,24 @@ static void read_json(const json *node, void* list)
             for (size_t i = 0; i < json_items(data_port_list); i++)
             {
                 json *n_port = json_item(data_port_list, i);
-                printf("==== PORT %zu ====\n", i);
 
                 struct t_port current_port;
-                current_port.values = (struct t_port_values_list *) malloc(sizeof(struct t_port_values_list));
-                current_port.values->size = 0;
-                current_port.values->next = NULL;
+                current_port.values = switch_create_port_values_list();
 
-                printf("port number: %d\n", (int)json_real(json_node(n_port, "port_number")));
-                //current_switch->port_list->port.number = (int)json_real(json_node(n_port, "port_number"));
                 current_port.number = (int)json_real(json_node(n_port, "port_number"));
                 read_values(json_node(n_port, "values"), current_port.values);
 
                 port_push(current_switch.port_list, current_port);
             }
-            printf("[PORT LIST]---^^^^^^^^\n");
-
         }
         else
         {
-            printf("Missing port list in switch [%s]...\n", json_string(data_switch)); // TODO: test
+            printf("[ERROR]Missing port list in switch [%s]...\n", json_string(data_switch)); // TODO: test
+            exit(1);
         }
 
         switch_push(switch_list, current_switch);
-        printf("[SWITCH]---^^^^^^^^\n");
     }
-
-
 }
 
 

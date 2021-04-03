@@ -32,8 +32,6 @@ struct t_port_list* switch_create_port_list(void)
     port_list->size = 0;
     port_list->next = NULL;
 
-    port_list->port.values = switch_create_port_values_list();
-
     return port_list;
 }
 
@@ -49,8 +47,6 @@ struct t_switch_list* switch_create_list(void)
 
     switch_list->size = 0;
     switch_list->next = NULL;
-
-    switch_list->sw.port_list = switch_create_port_list();
 
     return switch_list;
 }
@@ -120,6 +116,7 @@ void port_values_push(struct t_port_values_list * head, struct t_port_values dat
 
     current->next = (struct t_port_values_list *)malloc(sizeof(struct t_port_values_list));
     current->next->size = current->size + 1;
+    current->next->values = data;
     current->next->next = NULL;
 }
 
@@ -132,25 +129,27 @@ void switch_print_list(struct t_switch_list *head)
         printf("Switch:%s\n", current_sw_list->sw.name);
 
         struct t_port_list *current_port_list = current_sw_list->sw.port_list;
+
         while (current_port_list != NULL)
         {
             printf("\tPort Number: %d\n", current_port_list->port.number);
+
+            struct t_port_values_list *current_port_values_list = current_port_list->port.values;
+
+            while (current_port_values_list != NULL)
+            {
+                printf("\t\tPeriod: %lu\n", current_port_values_list->values.period);
+                printf("\t\tGate States: %d\n", current_port_values_list->values.gate_states);
+
+                current_port_values_list = current_port_values_list->next;
+            }
+
             current_port_list = current_port_list->next;
         }
 
         current_sw_list = current_sw_list->next;
     }
 }
-
-//void free_port_list(struct t_port_list *head)
-//{
-//    struct t_port_list *current_port_list = head;
-
-//    while(current_port_list != NULL)
-//    {
-
-//    }
-//}
 
 void free_switch_list(struct t_switch_list *head)
 {
