@@ -1,7 +1,7 @@
 CC = gcc
 VPATH = ../Client:../json:../switch
 CFLAGS = -I../Client -I../json -I../switch
-CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs #-fsanitize=address -fno-omit-frame-pointer -g
+CFLAGS += -std=c11 -Wpedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wconversion -Wshadow -Wcast-qual -Wnested-externs -fsanitize=address -fno-omit-frame-pointer -g
 CFLAGS += $(mysql_config --cflags) -MMD
 #CFLAGS += $(pkg-config --cflags mysqlclient) -MMD
 LDFLAGS = $(mysql_config --libs) -lmysqlclient -lm

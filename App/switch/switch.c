@@ -99,14 +99,20 @@ void port_values_push(struct t_port_values_list * head, struct t_port_values dat
 
 void switch_print_list(struct t_switch_list *head)
 {
-    struct t_switch_list *current = head;
+    struct t_switch_list *current_sw_list = head;
 
-    while (current != NULL)
+    while (current_sw_list != NULL)
     {
-        printf("Switch:%s\n", current->sw.name);
-        printf("\tPort Number: %d\n", current->sw.port_list->port.number);
+        printf("Switch:%s\n", current_sw_list->sw.name);
 
-        current = current->next;
+        struct t_port_list *current_port_list = current_sw_list->sw.port_list;
+        while (current_port_list != NULL)
+        {
+            printf("\tPort Number: %d\n", current_port_list->port.number);
+            current_port_list = current_port_list->next;
+        }
+
+        current_sw_list = current_sw_list->next;
     }
 }
 
