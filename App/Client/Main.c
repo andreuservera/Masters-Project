@@ -173,7 +173,7 @@ static void xml_write_instance(struct t_switch_list * switch_list)
         strcat(path, name_file);
         FILE * fpointer = fopen(path,"w");
 
-        fprintf(fpointer,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>>\n");
+        fprintf(fpointer,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         fprintf(fpointer,"<if:interfaces xmlns:if=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n");
 
 
