@@ -112,7 +112,7 @@
 		<sched:gate-parameters xmlns:sched="urn:ieee:std:802.1Q:yang:ieee802-dot1q-sched">
 			<sched:gate-enabled>true</sched:gate-enabled>
 			<sched:admin-gate-states>0</sched:admin-gate-states>
-			<sched:admin-control-list-length>3</sched:admin-control-list-length>
+			<sched:admin-control-list-length>2</sched:admin-control-list-length>
 			<sched:admin-control-list>
 				<sched:index>0</sched:index>
 				<sched:operation-name>sched:set-gate-states</sched:operation-name>

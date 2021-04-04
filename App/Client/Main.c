@@ -197,22 +197,23 @@ static void xml_write_instance(struct t_switch_list * switch_list)
 
         current_port_list = current_switch->sw.port_list;
 
-        struct t_port_values_list *current_port_values_list = current_port_list->port.values;
-
-        int admin_control_list_length = 0;
-        while (current_port_values_list != NULL)
-        {
-            admin_control_list_length++;
-            current_port_values_list = current_port_values_list->next;
-        }
 
         while (current_port_list != NULL)
         {
+            struct t_port_values_list *current_port_values_list = current_port_list->port.values;
+
+            // Calculate admin_control_list_length
+            int admin_control_list_length = 0;
+            while (current_port_values_list != NULL)
+            {
+                admin_control_list_length++;
+                current_port_values_list = current_port_values_list->next;
+            }
+
             xml_write_port(fpointer,
                            current_port_list->port.number,
                            admin_control_list_length);
 
-            //struct t_port_values_list *current_port_values_list = current_port_list->port.values;
             current_port_values_list = current_port_list->port.values;
 
             int index = 0;
