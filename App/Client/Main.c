@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "switch.h"
 #include "json.h"
-#include <mysql/mysql.h>
+//#include <mysql/mysql.h>
 #include <ctype.h>
 
 /****************************** M A C R O S ******************************/
@@ -221,7 +221,7 @@ static void xml_write_instance(struct t_switch_list * switch_list)
             {
                 xml_write_values(fpointer,
                                  current_port_values_list->values.period,
-                                 current_port_values_list->values.gate_states,
+                                 binaryToDecimal(current_port_values_list->values.gate_states),
                                  index);
 
                 index++;
