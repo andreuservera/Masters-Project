@@ -1,5 +1,6 @@
 docker/
 App/Output/
 App/build/*.o
+App/build/Main
 *.d
 *.o
