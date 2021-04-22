@@ -1,1 +1,5 @@
-dockerfile/
+docker/
+App/Output/
+App/build/*.o
+*.d
+*.o
