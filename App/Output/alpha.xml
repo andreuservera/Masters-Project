@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>>
+<?xml version="1.0" encoding="UTF-8"?>
 <if:interfaces xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces">
 	<if:interface>
 		<if:name>1</if:name>
